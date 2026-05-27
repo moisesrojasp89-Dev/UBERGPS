@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TrasladosYa — Chofer</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde:#00C853;--verde2:#00E676;
+  --negro:#080B0F;--gris1:#111418;--gris2:#1A1F27;--gris3:#252C36;
+  --blanco:#F0F6FF;--muted:#6B7A8D;--rojo:#FF3D3D;--amarillo:#FFD000;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-serif;
+  min-height:100dvh;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:20px;}
+
+/* LOGIN */
+#pantalla-login{width:100%;max-width:360px;text-align:center;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;
+  color:var(--verde);margin-bottom:4px;}
+.logo-sub{font-size:11px;color:var(--muted);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:32px;}
+.input{width:100%;background:var(--gris2);border:1px solid var(--gris3);
+  border-radius:10px;padding:13px 16px;color:var(--blanco);
+  font-family:'DM Sans',sans-serif;font-size:15px;margin-bottom:12px;
+  outline:none;transition:border-color .2s;}
+.input:focus{border-color:var(--verde);}
+.input::placeholder{color:#3D4A58;}
+.btn{width:100%;border:none;border-radius:10px;padding:14px;
+  font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;
+  cursor:pointer;transition:all .15s;}
+.btn-verde{background:var(--verde);color:var(--negro);}
+.btn-verde:active{transform:scale(.97);background:#00b549;}
+
+/* DASHBOARD */
+#pantalla-dashboard{width:100%;max-width:360px;display:none;}
+.header-d{text-align:center;margin-bottom:24px;}
+.saludo{font-size:14px;color:var(--muted);margin-bottom:2px;}
+.nombre-chofer{font-family:'Bebas Neue',sans-serif;font-size:28px;
+  letter-spacing:2px;color:var(--blanco);}
+.placa{display:inline-block;background:var(--amarillo);color:var(--negro);
+  font-weight:700;font-size:11px;padding:3px 10px;border-radius:6px;
+  letter-spacing:1px;margin-top:4px;}
+
+/* BOTÓN ESTADO GRANDE */
+.btn-estado{width:100%;border:none;border-radius:16px;padding:28px 20px;
+  font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;
+  cursor:pointer;transition:all .2s;margin-bottom:16px;position:relative;
+  overflow:hidden;}
+.btn-estado.libre{background:var(--verde);color:var(--negro);}
+.btn-estado.ocupado{background:var(--gris2);color:var(--muted);
+  border:2px solid var(--gris3);}
+.btn-estado-sub{font-family:'DM Sans',sans-serif;font-size:12px;
+  font-weight:500;display:block;margin-top:4px;letter-spacing:0;}
+
+/* GPS STATUS */
+.gps-card{background:var(--gris2);border-radius:12px;padding:14px 16px;
+  margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.gps-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.gps-dot.activo{background:var(--verde2);
+  animation:pulse 1.5s infinite;}
+.gps-dot.inactivo{background:var(--muted);}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.5;transform:scale(1.3)}}
+.gps-info{flex:1;}
+.gps-label{font-size:12px;color:var(--muted);}
+.gps-coords{font-size:11px;color:var(--blanco);
+  font-family:'DM Sans',sans-serif;margin-top:1px;}
+
+/* CARD SERVICIO ASIGNADO */
+.servicio-card{background:var(--gris2);border-radius:14px;padding:16px;
+  margin-bottom:16px;border-left:3px solid var(--verde2);display:none;}
+.servicio-card.visible{display:block;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}}
+.svc-titulo{font-family:'Bebas Neue',sans-serif;font-size:18px;
+  color:var(--verde2);margin-bottom:10px;letter-spacing:1px;}
+.svc-row{font-size:13px;color:var(--blanco);padding:5px 0;
+  border-bottom:1px solid var(--gris3);display:flex;gap:8px;}
+.svc-row:last-of-type{border-bottom:none;}
+.svc-ico{flex-shrink:0;}
+.btn-completar{width:100%;background:var(--amarillo);color:var(--negro);
+  border:none;border-radius:10px;padding:13px;
+  font-family:'Bebas Neue',sans-serif;font-size:18px;
+  letter-spacing:2px;cursor:pointer;margin-top:12px;transition:all .15s;}
+.btn-completar:active{transform:scale(.97);}
+
+/* STATS */
+.stats-row{display:flex;gap:8px;margin-bottom:16px;}
+.stat{flex:1;background:var(--gris2);border-radius:10px;
+  padding:10px;text-align:center;}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:24px;
+  color:var(--verde2);line-height:1;}
+.stat-l{font-size:9px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.5px;}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--gris1);border:1px solid var(--verde);color:var(--verde2);
+  padding:10px 20px;border-radius:20px;font-size:12px;font-weight:600;
+  z-index:999;opacity:0;transition:opacity .3s;white-space:nowrap;}
+.toast.on{opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="pantalla-login">
+  <div class="logo">TrasladosYa</div>
+  <div class="logo-sub">App del Chofer</div>
+  <input class="input" id="inp-nombre" placeholder="Tu nombre completo" />
+  <input class="input" id="inp-placa" placeholder="Placa del vehículo (ABC-123)" />
+  <input class="input" id="inp-tel" placeholder="Tu teléfono (0414-...)" type="tel" />
+  <button class="btn btn-verde" onclick="conectar()">ENTRAR AL SISTEMA</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="pantalla-dashboard">
+  <div class="header-d">
+    <div class="saludo">Bienvenido,</div>
+    <div class="nombre-chofer" id="lbl-nombre">—</div>
+    <div class="placa" id="lbl-placa">—</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-n" id="cnt-servicios">0</div>
+      <div class="stat-l">Servicios hoy</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n" id="cnt-km">0</div>
+      <div class="stat-l">Km estimados</div>
+    </div>
+  </div>
+
+  <!-- GPS -->
+  <div class="gps-card">
+    <div class="gps-dot inactivo" id="gps-dot"></div>
+    <div class="gps-info">
+      <div class="gps-label" id="gps-label">GPS inactivo</div>
+      <div class="gps-coords" id="gps-coords">Activa tu disponibilidad</div>
+    </div>
+  </div>
+
+  <!-- BOTÓN DISPONIBLE -->
+  <button class="btn-estado ocupado" id="btn-estado" onclick="toggleEstado()">
+    NO DISPONIBLE
+    <span class="btn-estado-sub">Toca para activarte</span>
+  </button>
+
+  <!-- SERVICIO ASIGNADO -->
+  <div class="servicio-card" id="servicio-card">
+    <div class="svc-titulo">🔔 SERVICIO ASIGNADO</div>
+    <div class="svc-row"><span class="svc-ico">📍</span><span id="svc-origen">—</span></div>
+    <div class="svc-row"><span class="svc-ico">🏁</span><span id="svc-destino">—</span></div>
+    <div class="svc-row"><span class="svc-ico">📞</span><span id="svc-tel">—</span></div>
+    <div class="svc-row"><span class="svc-ico">📏</span><span id="svc-dist">—</span></div>
+    <button class="btn-completar" onclick="completarServicio()">
+      ✅ MARCAR COMO COMPLETADO
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SERVIDOR = 'http://localhost:3000';
+let socket, libre = false, watchId = null;
+let servicioActual = null, serviciosHoy = 0, kmHoy = 0;
+let miNombre = '', miPlaca = '', miTel = '';
+
+// ── CONECTAR AL SERVIDOR ──
+function conectar() {
+  miNombre = document.getElementById('inp-nombre').value.trim();
+  miPlaca  = document.getElementById('inp-placa').value.trim().toUpperCase();
+  miTel    = document.getElementById('inp-tel').value.trim();
+
+  if (!miNombre || !miPlaca) {
+    toast('⚠️ Ingresa tu nombre y placa');
+    return;
+  }
+
+  socket = io(SERVIDOR);
+
+  socket.on('connect', () => {
+    socket.emit('chofer_conectado', {
+      id: socket.id,
+      nombre: miNombre,
+      placa: miPlaca,
+      tel: miTel,
+      lat: 7.7703,
+      lng: -72.2250
+    });
+
+    // Mostrar dashboard
+    document.getElementById('pantalla-login').style.display = 'none';
+    document.getElementById('pantalla-dashboard').style.display = 'block';
+    document.getElementById('lbl-nombre').textContent = miNombre;
+    document.getElementById('lbl-placa').textContent = miPlaca;
+    toast('✅ Conectado al sistema');
+  });
+
+  // Recibir servicio asignado
+  socket.on('servicio_asignado', (svc) => {
+    servicioActual = svc;
+    document.getElementById('svc-origen').textContent  = svc.origen;
+    document.getElementById('svc-destino').textContent = svc.destino;
+    document.getElementById('svc-tel').textContent     = svc.telefono || 'No indicado';
+    document.getElementById('svc-dist').textContent    = `${svc.distancia} km · ~${svc.eta} min`;
+    document.getElementById('servicio-card').classList.add('visible');
+
+    // Vibrar el teléfono
+    if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+    toast('🔔 ¡Nuevo servicio asignado!');
+  });
+
+  socket.on('disconnect', () => {
+    toast('⚠️ Desconectado del servidor');
+    detenerGPS();
+  });
+}
+
+// ── TOGGLE DISPONIBLE / NO DISPONIBLE ──
+function toggleEstado() {
+  libre = !libre;
+  const btn = document.getElementById('btn-estado');
+
+  if (libre) {
+    btn.className = 'btn-estado libre';
+    btn.innerHTML = 'DISPONIBLE<span class="btn-estado-sub">Recibiendo servicios</span>';
+    iniciarGPS();
+  } else {
+    btn.className = 'btn-estado ocupado';
+    btn.innerHTML = 'NO DISPONIBLE<span class="btn-estado-sub">Toca para activarte</span>';
+    detenerGPS();
+  }
+}
+
+// ── GPS ──
+function iniciarGPS() {
+  if (!navigator.geolocation) {
+    toast('⚠️ GPS no disponible en este dispositivo');
+    return;
+  }
+
+  document.getElementById('gps-dot').className   = 'gps-dot activo';
+  document.getElementById('gps-label').textContent = 'GPS activo — enviando ubicación';
+
+  watchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const precision = Math.round(pos.coords.accuracy);
+
+      document.getElementById('gps-coords').textContent =
+        `${lat.toFixed(5)}, ${lng.toFixed(5)} · ±${precision}m`;
+
+      if (socket && socket.connected) {
+        socket.emit('ubicacion', { lat, lng });
+      }
+    },
+    (err) => {
+      toast('⚠️ Error GPS: ' + err.message);
+    },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+  );
+}
+
+function detenerGPS() {
+  if (watchId !== null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+  document.getElementById('gps-dot').className    = 'gps-dot inactivo';
+  document.getElementById('gps-label').textContent  = 'GPS inactivo';
+  document.getElementById('gps-coords').textContent = 'Activa tu disponibilidad';
+}
+
+// ── COMPLETAR SERVICIO ──
+function completarServicio() {
+  if (!servicioActual) return;
+
+  socket.emit('servicio_completado', servicioActual.id);
+
+  serviciosHoy++;
+  kmHoy += parseFloat(servicioActual.distancia || 0);
+
+  document.getElementById('cnt-servicios').textContent = serviciosHoy;
+  document.getElementById('cnt-km').textContent = kmHoy.toFixed(1);
+
+  document.getElementById('servicio-card').classList.remove('visible');
+  servicioActual = null;
+
+  // Volver a disponible automático
+  libre = true;
+  const btn = document.getElementById('btn-estado');
+  btn.className = 'btn-estado libre';
+  btn.innerHTML = 'DISPONIBLE<span class="btn-estado-sub">Recibiendo servicios</span>';
+  iniciarGPS();
+
+  toast('✅ Servicio completado');
+}
+
+// ── TOAST ──
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 3000);
+}
+</script>
+</body>
+</html>
