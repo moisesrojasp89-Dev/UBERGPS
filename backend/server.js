@@ -14,6 +14,10 @@ const io     = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
+const path = require('path');
+app.use('/chofer', express.static(path.join(__dirname, '../chofer')));
+app.use('/operadora', express.static(path.join(__dirname, '../operadora')));
+
 // ── Supabase ──
 const supabase = createClient(
   process.env.SUPABASE_URL,
