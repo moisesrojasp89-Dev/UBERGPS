@@ -120,6 +120,76 @@ app.post('/servicio', async (req, res) => {
   res.json(servicio);
 });
 
+// ── REST: Webhook WhatsApp (Twilio) ──
+// Twilio envía POST cuando el chofer responde por WhatsApp
+app.post('/whatsapp', express.urlencoded({ extended: false }), async (req, res) => {
+  const from = (req.body.From || '').replace('whatsapp:', '').trim();
+  const body = (req.body.Body || '').trim().toLowerCase();
+
+  console.log(`📱 WhatsApp de ${from}: "${body}"`);
+
+  const chofer = Object.values(choferes).find(c => {
+    const tel = (c.telefono || c.tel || '').replace(/\D/g, '');
+    const fromClean = from.replace(/\D/g, '');
+    return fromClean.endsWith(tel) || tel.endsWith(fromClean);
+  });
+
+  const twiml = (msg) =>
+    `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${msg}</Message></Response>`;
+
+  if (!chofer) {
+    return res.type('text/xml').send(twiml('No encontré tu registro en el sistema.'));
+  }
+
+  if (body === '1') {
+    return res.type('text/xml').send(twiml('✅ Servicio aceptado. ¡Buen viaje!'));
+  }
+
+  if (body === '2') {
+    if (chofer.id) {
+      await supabase.from('choferes').update({ libre: true }).eq('id', chofer.id);
+      chofer.libre = true;
+      io.emit('choferes_actualizado', Object.values(choferes));
+    }
+    return res.type('text/xml').send(twiml('Servicio rechazado. Quedas disponible nuevamente.'));
+  }
+
+  // "listo" = servicio completado (antes era "completado")
+  if (body === 'listo') {
+    const socketId = Object.keys(choferes).find(k => choferes[k].id === chofer.id);
+    if (socketId) choferes[socketId].libre = true;
+    if (chofer.id) {
+      await supabase.from('choferes').update({ libre: true }).eq('id', chofer.id);
+    }
+
+    const { data: svcActivo } = await supabase
+      .from('servicios')
+      .select('id')
+      .eq('chofer_id', chofer.id)
+      .eq('estado', 'activo')
+      .order('creado_en', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (svcActivo) {
+      await supabase
+        .from('servicios')
+        .update({ estado: 'completado', completado_en: new Date() })
+        .eq('id', svcActivo.id);
+    }
+
+    io.emit('choferes_actualizado', Object.values(choferes));
+
+    const { data: serviciosActualizados } = await supabase
+      .from('servicios').select('*').order('creado_en', { ascending: false });
+    io.emit('servicio_actualizado', serviciosActualizados || []);
+
+    return res.type('text/xml').send(twiml('✅ Servicio completado. ¡Gracias!'));
+  }
+
+  res.type('text/xml').send(twiml('Responde:\n1 = Aceptar\n2 = Rechazar\nListo = Completar servicio'));
+});
+
 // ── WebSockets ──
 io.on('connection', (socket) => {
   console.log(`🔌 Conectado: ${socket.id}`);
@@ -139,6 +209,12 @@ io.on('connection', (socket) => {
 }
 
     if (choferDB) {
+      // Verificar que el chofer esté activo en el sistema
+      if (choferDB.activo === false) {
+        socket.emit('login_error', 'Tu cuenta está desactivada. Contacta al administrador.');
+        return;
+      }
+
       choferes[socket.id] = {
         ...choferDB,
         socketId: socket.id,
@@ -149,9 +225,12 @@ io.on('connection', (socket) => {
         .from('choferes')
         .update({ libre: true })
         .eq('id', choferDB.id);
+
+      socket.emit('login_ok', choferDB);
     } else {
-      // Fallback: usa los datos que manda el chofer
-      choferes[socket.id] = { ...data, socketId: socket.id, libre: true };
+      // Placa no encontrada en la BD
+      socket.emit('login_error', 'Placa no registrada en el sistema. Verifica e intenta de nuevo.');
+      return;
     }
 
     console.log(`🚕 Chofer online: ${choferes[socket.id].nombre}`);

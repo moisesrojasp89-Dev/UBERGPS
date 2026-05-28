@@ -110,10 +110,9 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
 <div id="pantalla-login">
   <div class="logo">UBERGPS</div>
   <div class="logo-sub">App del Chofer</div>
-  <input class="input" id="inp-nombre" placeholder="Tu nombre completo" />
-  <input class="input" id="inp-placa" placeholder="Placa del vehículo (ABC-123)" />
-  <input class="input" id="inp-tel" placeholder="Tu teléfono (0414-...)" type="tel" />
+  <input class="input" id="inp-placa" placeholder="Placa del vehículo (ABC-123)" autocomplete="off" />
   <button class="btn btn-verde" onclick="conectar()">ENTRAR AL SISTEMA</button>
+  <div id="login-error" style="display:none;margin-top:12px;padding:12px 14px;background:#1A1F27;border:1px solid var(--rojo);border-radius:10px;color:var(--rojo);font-size:13px;text-align:center;"></div>
 </div>
 
 <!-- DASHBOARD -->
@@ -171,35 +170,51 @@ let socket, libre = false, watchId = null;
 let servicioActual = null, serviciosHoy = 0, kmHoy = 0;
 let miNombre = '', miPlaca = '', miTel = '';
 
+function mostrarLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
 // ── CONECTAR AL SERVIDOR ──
 function conectar() {
-  miNombre = document.getElementById('inp-nombre').value.trim();
-  miPlaca  = document.getElementById('inp-placa').value.trim().toUpperCase();
-  miTel    = document.getElementById('inp-tel').value.trim();
+  miPlaca = document.getElementById('inp-placa').value.trim().toUpperCase();
+  document.getElementById('login-error').style.display = 'none';
 
-  if (!miNombre || !miPlaca) {
-    toast('⚠️ Ingresa tu nombre y placa');
+  if (!miPlaca) {
+    mostrarLoginError('⚠️ Ingresa la placa de tu vehículo');
     return;
   }
+
+  // Deshabilitar botón mientras conecta
+  const btn = document.querySelector('#pantalla-login .btn-verde');
+  btn.textContent = 'CONECTANDO...';
+  btn.disabled = true;
 
   socket = io(SERVIDOR);
 
   socket.on('connect', () => {
-    socket.emit('chofer_conectado', {
-      id: socket.id,
-      nombre: miNombre,
-      placa: miPlaca,
-      tel: miTel,
-      lat: 7.7703,
-      lng: -72.2250
-    });
+    socket.emit('chofer_conectado', { placa: miPlaca });
+  });
 
-    // Mostrar dashboard
+  // Servidor confirma login exitoso con datos del chofer
+  socket.on('login_ok', (choferDB) => {
+    miNombre = choferDB.nombre || miPlaca;
+    miTel    = choferDB.telefono || choferDB.tel || '';
+
     document.getElementById('pantalla-login').style.display = 'none';
     document.getElementById('pantalla-dashboard').style.display = 'block';
     document.getElementById('lbl-nombre').textContent = miNombre;
-    document.getElementById('lbl-placa').textContent = miPlaca;
+    document.getElementById('lbl-placa').textContent  = miPlaca;
     toast('✅ Conectado al sistema');
+  });
+
+  // Servidor rechaza login
+  socket.on('login_error', (mensaje) => {
+    mostrarLoginError('❌ ' + mensaje);
+    btn.textContent = 'ENTRAR AL SISTEMA';
+    btn.disabled = false;
+    socket.disconnect();
   });
 
   // Recibir servicio asignado
