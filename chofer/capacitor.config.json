@@ -1,0 +1,10 @@
+{
+  "appId": "com.ubergps.chofer",
+  "appName": "UBERGPS Chofer",
+  "webDir": "dist",
+  "plugins": {
+    "BackgroundGeolocation": {
+      "android.useLegacyBridge": true
+    }
+  }
+}
