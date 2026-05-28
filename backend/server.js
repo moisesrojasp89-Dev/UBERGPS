@@ -15,11 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 const path = require('path');
-// Antes
-app.use('/chofer', express.static(path.join(__dirname, '../chofer')));
-app.use('/operadora', express.static(path.join(__dirname, '../operadora')));
 
-// Después
 app.get('/chofer', (req, res) => {
   res.sendFile(path.join(__dirname, '../chofer/index.html'));
 });
