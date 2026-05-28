@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">UBERGPS Chofer</string>
-    <string name="title_activity_main">UBERGPS Chofer</string>
-    <string name="package_name">com.ubergps.chofer</string>
-    <string name="custom_url_scheme">com.ubergps.chofer</string>
-</resources>
