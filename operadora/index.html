@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>UBERGPS — Operadora</title>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,6 +19,23 @@
 html,body{height:100%;overflow:hidden;}
 body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-serif;
   display:flex;flex-direction:column;height:100dvh;}
+
+/* LOGIN */
+#pantalla-login{position:fixed;inset:0;background:var(--negro);z-index:9999;
+  display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-box{width:100%;max-width:340px;text-align:center;}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;color:var(--verde);}
+.login-sub{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:32px;}
+.linput{width:100%;background:var(--gris2);border:1px solid var(--gris3);border-radius:10px;
+  padding:13px 16px;color:var(--blanco);font-family:'DM Sans',sans-serif;font-size:15px;
+  margin-bottom:12px;outline:none;transition:border-color .2s;}
+.linput:focus{border-color:var(--verde);}
+.linput::placeholder{color:#3D4A58;}
+.lbtn{width:100%;border:none;border-radius:10px;padding:14px;background:var(--verde);
+  color:var(--negro);font-family:'Bebas Neue',sans-serif;font-size:20px;
+  letter-spacing:2px;cursor:pointer;transition:all .15s;}
+.lbtn:active{transform:scale(.97);background:#00b549;}
+.lerror{color:var(--rojo);font-size:12px;margin-top:10px;min-height:16px;}
 
 /* HEADER */
 .header{background:var(--gris1);border-bottom:1px solid var(--gris3);
@@ -150,15 +168,33 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
 </head>
 <body>
 
+<!-- LOGIN -->
+<div id="pantalla-login">
+  <div class="login-box">
+    <div class="login-logo">UBERGPS</div>
+    <div class="login-sub">Panel Operadora</div>
+    <input class="linput" id="inp-user" placeholder="Usuario" autocomplete="off"/>
+    <input class="linput" id="inp-pass" placeholder="Contraseña" type="password"/>
+    <button class="lbtn" onclick="loginOperadora()">ENTRAR</button>
+    <div class="lerror" id="login-error"></div>
+  </div>
+</div>
+
 <div class="header">
   <div>
     <div class="logo">UBERGPS</div>
-    <div class="logo-sub"><span class="dot"></span>Panel Operadora · San Cristóbal</div>
+    <div class="logo-sub"><span class="dot"></span>Panel Operadora · <span id="lbl-operadora">—</span></div>
   </div>
-  <div class="badges">
-    <div class="badge"><div class="badge-n g" id="cnt-l">0</div><div class="badge-l">Libres</div></div>
-    <div class="badge"><div class="badge-n r" id="cnt-o">0</div><div class="badge-l">Ocupados</div></div>
-    <div class="badge"><div class="badge-n b" id="cnt-s">0</div><div class="badge-l">Hoy</div></div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="badges">
+      <div class="badge"><div class="badge-n g" id="cnt-l">0</div><div class="badge-l">Libres</div></div>
+      <div class="badge"><div class="badge-n r" id="cnt-o">0</div><div class="badge-l">Ocupados</div></div>
+      <div class="badge"><div class="badge-n b" id="cnt-s">0</div><div class="badge-l">Hoy</div></div>
+    </div>
+    <button onclick="logoutOperadora()" style="background:var(--gris3);border:none;color:var(--muted);
+      padding:7px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+      Salir
+    </button>
   </div>
 </div>
 
@@ -218,6 +254,44 @@ let map, markers = {}, clientePin = null;
 let choferes = [], historial = [];
 let origenCoords = null, servicioActual = null;
 
+// ── SUPABASE ──
+const sb = window.supabase.createClient(
+  'https://mzwyhiueievkwjwbvhes.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16d3loaXVlaWV2a3dqd2J2aGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODc2NDUsImV4cCI6MjA5NTM2MzY0NX0.K3TACDGhOm-6k_9AJk_SdNTUT8mj_dnTNvftx_-sagI'
+);
+
+// ── LOGIN OPERADORA ──
+async function loginOperadora() {
+  const usuario  = document.getElementById('inp-user').value.trim();
+  const password = document.getElementById('inp-pass').value.trim();
+  if (!usuario || !password) {
+    document.getElementById('login-error').textContent = '⚠️ Ingresa usuario y contraseña';
+    return;
+  }
+  const { data } = await sb.from('operadoras')
+    .select('*').eq('usuario', usuario).eq('password', password).single();
+  if (data) {
+    document.getElementById('pantalla-login').style.display = 'none';
+    document.getElementById('lbl-operadora').textContent = data.nombre;
+    initMap();
+  } else {
+    document.getElementById('login-error').textContent = '⚠️ Usuario o contraseña incorrectos';
+  }
+}
+
+function logoutOperadora() {
+  document.getElementById('pantalla-login').style.display = 'flex';
+  document.getElementById('inp-user').value = '';
+  document.getElementById('inp-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('inp-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') loginOperadora();
+  });
+});
+
 // ── MAPA ──
 function initMap() {
   map = L.map('map', {zoomControl:false, attributionControl:false})
@@ -225,9 +299,30 @@ function initMap() {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     {maxZoom:19}).addTo(map);
   L.control.zoom({position:'topright'}).addTo(map);
+  initSocket();
 }
 
-// ── ICONOS ──
+// ── SOCKET ──
+function initSocket() {
+  const socket = io(SERVIDOR);
+
+  socket.on('connect', () => {
+    toast('✅ Conectada al servidor');
+  });
+
+  socket.on('choferes_actualizado', (lista) => {
+    choferes = lista;
+    actualizarMarkers();
+    renderChoferes();
+    actualizarStats();
+  });
+
+  socket.on('servicio_actualizado', (lista) => {
+    historial = lista;
+    renderHistorial();
+    actualizarStats();
+  });
+}
 function iconChofer(libre, pulso=false) {
   const c = libre ? '#00E676' : '#FF3D3D';
   const sz = pulso ? 40 : 32;
@@ -257,27 +352,7 @@ function iconCliente() {
   });
 }
 
-// ── SOCKET ──
-const socket = io(SERVIDOR);
-
-socket.on('connect', () => {
-  toast('✅ Conectada al servidor');
-});
-
-socket.on('choferes_actualizado', (lista) => {
-  choferes = lista;
-  actualizarMarkers();
-  renderChoferes();
-  actualizarStats();
-});
-
-socket.on('servicio_actualizado', (lista) => {
-  historial = lista;
-  renderHistorial();
-  actualizarStats();
-});
-
-// ── MARKERS ──
+// ── ICONOS ──
 function actualizarMarkers() {
   // Remover markers viejos
   Object.keys(markers).forEach(id => {
@@ -538,7 +613,7 @@ function toast(msg) {
   setTimeout(()=>t.classList.remove('on'),3200);
 }
 
-window.onload = initMap;
+
 </script>
 </body>
 </html>
