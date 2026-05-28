@@ -546,7 +546,11 @@ function abrirWhatsApp(tel, nombre, origen, destino, telCliente, km) {
 📞 *Cliente:* ${telCliente||'No indicado'}
 📏 *Distancia:* ${km} km
 ━━━━━━━━━━━━━━━
-Por favor confirma recibido ✅`);
+Responde:
+1 = Acepto el servicio
+2 = Rechazo el servicio
+
+Cuando termines responde: *listo*`);
   window.open(`https://wa.me/58${numero}?text=${msg}`, '_blank');
 }
 
