@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>UBERGPS — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --verde:#00C853;--verde2:#00E676;
+  --negro:#080B0F;--gris1:#111418;--gris2:#1A1F27;--gris3:#252C36;
+  --blanco:#F0F6FF;--muted:#6B7A8D;--rojo:#FF3D3D;--amarillo:#FFD000;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-serif;min-height:100dvh;}
+
+/* LOGIN */
+#pantalla-login{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-box{width:100%;max-width:340px;text-align:center;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;color:var(--verde);}
+.logo-sub{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:32px;}
+.input{width:100%;background:var(--gris2);border:1px solid var(--gris3);border-radius:10px;
+  padding:13px 16px;color:var(--blanco);font-family:'DM Sans',sans-serif;font-size:15px;
+  margin-bottom:12px;outline:none;transition:border-color .2s;}
+.input:focus{border-color:var(--verde);}
+.input::placeholder{color:#3D4A58;}
+.btn{width:100%;border:none;border-radius:10px;padding:14px;font-family:'Bebas Neue',sans-serif;
+  font-size:20px;letter-spacing:2px;cursor:pointer;transition:all .15s;}
+.btn-verde{background:var(--verde);color:var(--negro);}
+.btn-verde:hover{background:var(--verde2);}
+.btn-rojo{background:var(--rojo);color:#fff;font-size:13px;padding:8px 14px;
+  font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:0;width:auto;border-radius:8px;}
+.btn-gris{background:var(--gris3);color:var(--blanco);font-size:13px;padding:8px 14px;
+  font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:0;width:auto;border-radius:8px;}
+.btn-sm{font-size:12px;padding:6px 12px;font-family:'DM Sans',sans-serif;font-weight:600;
+  letter-spacing:0;width:auto;border-radius:7px;border:none;cursor:pointer;transition:all .15s;}
+.btn-activar{background:#1a3d2b;color:var(--verde2);}
+.btn-desactivar{background:#3d1a1a;color:var(--rojo);}
+.btn-editar{background:var(--gris3);color:var(--blanco);}
+.btn-eliminar{background:#3d1a1a;color:var(--rojo);}
+
+/* DASHBOARD */
+#pantalla-admin{display:none;min-height:100dvh;}
+.topbar{background:var(--gris1);border-bottom:1px solid var(--gris3);
+  padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--verde);}
+.topbar-sub{font-size:11px;color:var(--muted);letter-spacing:1px;}
+.logout-btn{background:var(--gris3);border:none;color:var(--muted);padding:7px 14px;
+  border-radius:8px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.logout-btn:hover{color:var(--blanco);}
+
+.tabs{display:flex;border-bottom:1px solid var(--gris3);background:var(--gris1);}
+.tab{padding:13px 20px;font-size:13px;font-weight:600;color:var(--muted);
+  cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.3px;}
+.tab.activa{color:var(--verde2);border-bottom-color:var(--verde2);}
+
+.contenido{padding:20px;max-width:1000px;}
+
+/* SECCIÓN */
+.seccion-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.seccion-titulo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--blanco);}
+
+/* TABLA */
+.tabla-wrap{background:var(--gris1);border-radius:12px;overflow:hidden;border:1px solid var(--gris3);}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--gris2);padding:10px 14px;text-align:left;font-size:11px;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:600;}
+td{padding:11px 14px;font-size:13px;border-top:1px solid var(--gris3);vertical-align:middle;}
+tr:hover td{background:rgba(255,255,255,.02);}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-activo{background:#1a3d2b;color:var(--verde2);}
+.badge-inactivo{background:#3d1a1a;color:var(--rojo);}
+.badge-libre{background:#1a2d3d;color:#60bfff;}
+.badge-ocupado{background:#3d2d1a;color:var(--amarillo);}
+.acciones{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:20px;}
+.overlay.on{display:flex;}
+.modal{background:var(--gris1);border:1px solid var(--gris3);border-radius:16px;
+  padding:24px;width:100%;max-width:400px;}
+.modal-titulo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;
+  color:var(--verde2);margin-bottom:20px;}
+.modal-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;}
+.modal-row{margin-bottom:14px;}
+.modal-btns{display:flex;gap:10px;margin-top:20px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--gris1);border:1px solid var(--verde);color:var(--verde2);
+  padding:10px 20px;border-radius:20px;font-size:12px;font-weight:600;
+  z-index:999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;}
+.toast.on{opacity:1;}
+.empty{padding:30px;text-align:center;color:var(--muted);font-size:13px;}
+
+/* SELECT */
+select.input{cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="pantalla-login">
+  <div class="login-box">
+    <div class="logo">UBERGPS</div>
+    <div class="logo-sub">Panel Administrador</div>
+    <input class="input" id="inp-user" placeholder="Usuario" autocomplete="off"/>
+    <input class="input" id="inp-pass" placeholder="Contraseña" type="password"/>
+    <button class="btn btn-verde" onclick="login()">ENTRAR</button>
+    <div id="login-error" style="color:var(--rojo);font-size:12px;margin-top:12px;"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="pantalla-admin">
+  <div class="topbar">
+    <div>
+      <div class="topbar-logo">UBERGPS</div>
+      <div class="topbar-sub">PANEL ADMINISTRADOR</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab activa" onclick="verTab('choferes',this)">🚕 Choferes</div>
+    <div class="tab" onclick="verTab('operadoras',this)">👩‍💼 Operadoras</div>
+  </div>
+
+  <div class="contenido">
+
+    <!-- TAB CHOFERES -->
+    <div id="tab-choferes">
+      <div class="seccion-header">
+        <div class="seccion-titulo">CHOFERES</div>
+        <button class="btn btn-verde" style="width:auto;padding:10px 18px;font-size:16px;" onclick="abrirModalChofer()">+ NUEVO</button>
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Placa</th>
+              <th>Teléfono</th>
+              <th>Estado</th>
+              <th>Disponib.</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-choferes">
+            <tr><td colspan="6" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB OPERADORAS -->
+    <div id="tab-operadoras" style="display:none;">
+      <div class="seccion-header">
+        <div class="seccion-titulo">OPERADORAS</div>
+        <button class="btn btn-verde" style="width:auto;padding:10px 18px;font-size:16px;" onclick="abrirModalOperadora()">+ NUEVA</button>
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Usuario</th>
+              <th>Turno</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-operadoras">
+            <tr><td colspan="4" class="empty">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL CHOFER -->
+<div class="overlay" id="modal-chofer">
+  <div class="modal">
+    <div class="modal-titulo" id="modal-chofer-titulo">NUEVO CHOFER</div>
+    <input type="hidden" id="chofer-id"/>
+    <div class="modal-row">
+      <div class="modal-label">Nombre completo</div>
+      <input class="input" id="chofer-nombre" placeholder="Ej: Juan Pérez"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Placa</div>
+      <input class="input" id="chofer-placa" placeholder="Ej: ABC-123"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Teléfono</div>
+      <input class="input" id="chofer-tel" placeholder="Ej: 0414-1234567" type="tel"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Estado</div>
+      <select class="input" id="chofer-activo">
+        <option value="true">Activo</option>
+        <option value="false">Inactivo</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-verde" style="flex:1;font-size:17px;" onclick="guardarChofer()">GUARDAR</button>
+      <button class="btn-gris btn" style="width:auto;padding:12px 18px;font-size:15px;" onclick="cerrarModales()">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL OPERADORA -->
+<div class="overlay" id="modal-operadora">
+  <div class="modal">
+    <div class="modal-titulo" id="modal-op-titulo">NUEVA OPERADORA</div>
+    <input type="hidden" id="op-id"/>
+    <div class="modal-row">
+      <div class="modal-label">Nombre completo</div>
+      <input class="input" id="op-nombre" placeholder="Ej: María López"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Usuario</div>
+      <input class="input" id="op-usuario" placeholder="Ej: operadora1" autocomplete="off"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Contraseña</div>
+      <input class="input" id="op-password" placeholder="Contraseña" type="password" autocomplete="off"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Turno</div>
+      <select class="input" id="op-turno">
+        <option value="mañana">Mañana</option>
+        <option value="tarde">Tarde</option>
+        <option value="noche">Noche</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-verde" style="flex:1;font-size:17px;" onclick="guardarOperadora()">GUARDAR</button>
+      <button class="btn-gris btn" style="width:auto;padding:12px 18px;font-size:15px;" onclick="cerrarModales()">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR ELIMINAR -->
+<div class="overlay" id="modal-confirm">
+  <div class="modal" style="max-width:320px;text-align:center;">
+    <div class="modal-titulo" style="color:var(--rojo);">⚠️ ELIMINAR</div>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:20px;" id="confirm-msg">¿Seguro que deseas eliminar este registro?</p>
+    <div class="modal-btns">
+      <button class="btn btn-rojo" style="flex:1;font-size:16px;" onclick="confirmarEliminar()">ELIMINAR</button>
+      <button class="btn-gris btn" style="width:auto;padding:12px 18px;font-size:15px;" onclick="cerrarModales()">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://mzwyhiueievkwjwbvhes.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16d3loaXVlaWV2a3dqd2J2aGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODc2NDUsImV4cCI6MjA5NTM2MzY0NX0.K3TACDGhOm-6k_9AJk_SdNTUT8mj_dnTNvftx_-sagI';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Credenciales admin hardcoded (puedes cambiarlas)
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'ubergps2024';
+
+let eliminarFn = null;
+
+// ── LOGIN ──
+function login() {
+  const u = document.getElementById('inp-user').value.trim();
+  const p = document.getElementById('inp-pass').value.trim();
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    document.getElementById('pantalla-login').style.display = 'none';
+    document.getElementById('pantalla-admin').style.display = 'block';
+    cargarChoferes();
+  } else {
+    document.getElementById('login-error').textContent = '⚠️ Usuario o contraseña incorrectos';
+  }
+}
+document.getElementById('inp-pass').addEventListener('keydown', e => { if(e.key==='Enter') login(); });
+
+function logout() {
+  document.getElementById('pantalla-login').style.display = 'flex';
+  document.getElementById('pantalla-admin').style.display = 'none';
+  document.getElementById('inp-user').value = '';
+  document.getElementById('inp-pass').value = '';
+}
+
+// ── TABS ──
+function verTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('activa'));
+  el.classList.add('activa');
+  document.getElementById('tab-choferes').style.display = tab === 'choferes' ? 'block' : 'none';
+  document.getElementById('tab-operadoras').style.display = tab === 'operadoras' ? 'block' : 'none';
+  if (tab === 'choferes') cargarChoferes();
+  else cargarOperadoras();
+}
+
+// ── CHOFERES ──
+async function cargarChoferes() {
+  const { data } = await sb.from('choferes').select('*').order('nombre');
+  const tb = document.getElementById('tbody-choferes');
+  if (!data || !data.length) { tb.innerHTML = '<tr><td colspan="6" class="empty">Sin choferes registrados</td></tr>'; return; }
+  tb.innerHTML = data.map(c => `
+    <tr>
+      <td><b>${c.nombre}</b></td>
+      <td>${c.placa}</td>
+      <td>${c.telefono || '—'}</td>
+      <td><span class="badge ${c.activo !== false ? 'badge-activo' : 'badge-inactivo'}">${c.activo !== false ? 'Activo' : 'Inactivo'}</span></td>
+      <td><span class="badge ${c.libre ? 'badge-libre' : 'badge-ocupado'}">${c.libre ? 'Libre' : 'Ocupado'}</span></td>
+      <td class="acciones">
+        <button class="btn-sm btn-editar" onclick='editarChofer(${JSON.stringify(c)})'>Editar</button>
+        <button class="btn-sm ${c.activo !== false ? 'btn-desactivar' : 'btn-activar'}" onclick="toggleChofer('${c.id}',${c.activo !== false})">${c.activo !== false ? 'Desactivar' : 'Activar'}</button>
+        <button class="btn-sm btn-eliminar" onclick="pedirEliminar('chofer','${c.id}','${c.nombre}')">Eliminar</button>
+      </td>
+    </tr>`).join('');
+}
+
+function abrirModalChofer(c) {
+  document.getElementById('modal-chofer-titulo').textContent = 'NUEVO CHOFER';
+  document.getElementById('chofer-id').value = '';
+  document.getElementById('chofer-nombre').value = '';
+  document.getElementById('chofer-placa').value = '';
+  document.getElementById('chofer-tel').value = '';
+  document.getElementById('chofer-activo').value = 'true';
+  document.getElementById('modal-chofer').classList.add('on');
+}
+
+function editarChofer(c) {
+  document.getElementById('modal-chofer-titulo').textContent = 'EDITAR CHOFER';
+  document.getElementById('chofer-id').value = c.id;
+  document.getElementById('chofer-nombre').value = c.nombre;
+  document.getElementById('chofer-placa').value = c.placa;
+  document.getElementById('chofer-tel').value = c.telefono || '';
+  document.getElementById('chofer-activo').value = c.activo !== false ? 'true' : 'false';
+  document.getElementById('modal-chofer').classList.add('on');
+}
+
+async function guardarChofer() {
+  const id     = document.getElementById('chofer-id').value;
+  const nombre = document.getElementById('chofer-nombre').value.trim();
+  const placa  = document.getElementById('chofer-placa').value.trim().toUpperCase();
+  const tel    = document.getElementById('chofer-tel').value.trim();
+  const activo = document.getElementById('chofer-activo').value === 'true';
+  if (!nombre || !placa) { toast('⚠️ Nombre y placa son obligatorios'); return; }
+  if (id) {
+    await sb.from('choferes').update({ nombre, placa, telefono: tel, activo }).eq('id', id);
+    toast('✅ Chofer actualizado');
+  } else {
+    await sb.from('choferes').insert({ nombre, placa, telefono: tel, activo, libre: true });
+    toast('✅ Chofer agregado');
+  }
+  cerrarModales();
+  cargarChoferes();
+}
+
+async function toggleChofer(id, activo) {
+  await sb.from('choferes').update({ activo: !activo }).eq('id', id);
+  toast(activo ? '🔴 Chofer desactivado' : '🟢 Chofer activado');
+  cargarChoferes();
+}
+
+// ── OPERADORAS ──
+async function cargarOperadoras() {
+  const { data } = await sb.from('operadoras').select('*').order('nombre');
+  const tb = document.getElementById('tbody-operadoras');
+  if (!data || !data.length) { tb.innerHTML = '<tr><td colspan="4" class="empty">Sin operadoras registradas</td></tr>'; return; }
+  tb.innerHTML = data.map(o => `
+    <tr>
+      <td><b>${o.nombre}</b></td>
+      <td>${o.usuario}</td>
+      <td>${o.turno || '—'}</td>
+      <td class="acciones">
+        <button class="btn-sm btn-editar" onclick='editarOperadora(${JSON.stringify(o)})'>Editar</button>
+        <button class="btn-sm btn-eliminar" onclick="pedirEliminar('operadora','${o.id}','${o.nombre}')">Eliminar</button>
+      </td>
+    </tr>`).join('');
+}
+
+function abrirModalOperadora() {
+  document.getElementById('modal-op-titulo').textContent = 'NUEVA OPERADORA';
+  document.getElementById('op-id').value = '';
+  document.getElementById('op-nombre').value = '';
+  document.getElementById('op-usuario').value = '';
+  document.getElementById('op-password').value = '';
+  document.getElementById('op-turno').value = 'mañana';
+  document.getElementById('modal-operadora').classList.add('on');
+}
+
+function editarOperadora(o) {
+  document.getElementById('modal-op-titulo').textContent = 'EDITAR OPERADORA';
+  document.getElementById('op-id').value = o.id;
+  document.getElementById('op-nombre').value = o.nombre;
+  document.getElementById('op-usuario').value = o.usuario;
+  document.getElementById('op-password').value = o.password || '';
+  document.getElementById('op-turno').value = o.turno || 'mañana';
+  document.getElementById('modal-operadora').classList.add('on');
+}
+
+async function guardarOperadora() {
+  const id       = document.getElementById('op-id').value;
+  const nombre   = document.getElementById('op-nombre').value.trim();
+  const usuario  = document.getElementById('op-usuario').value.trim();
+  const password = document.getElementById('op-password').value.trim();
+  const turno    = document.getElementById('op-turno').value;
+  if (!nombre || !usuario || !password) { toast('⚠️ Todos los campos son obligatorios'); return; }
+  if (id) {
+    await sb.from('operadoras').update({ nombre, usuario, password, turno }).eq('id', id);
+    toast('✅ Operadora actualizada');
+  } else {
+    await sb.from('operadoras').insert({ nombre, usuario, password, turno });
+    toast('✅ Operadora agregada');
+  }
+  cerrarModales();
+  cargarOperadoras();
+}
+
+// ── ELIMINAR ──
+function pedirEliminar(tipo, id, nombre) {
+  document.getElementById('confirm-msg').textContent = `¿Eliminar a "${nombre}"? Esta acción no se puede deshacer.`;
+  eliminarFn = async () => {
+    const tabla = tipo === 'chofer' ? 'choferes' : 'operadoras';
+    await sb.from(tabla).delete().eq('id', id);
+    toast('🗑️ Eliminado correctamente');
+    cerrarModales();
+    tipo === 'chofer' ? cargarChoferes() : cargarOperadoras();
+  };
+  document.getElementById('modal-confirm').classList.add('on');
+}
+
+function confirmarEliminar() { if (eliminarFn) eliminarFn(); }
+
+// ── UTILS ──
+function cerrarModales() {
+  document.querySelectorAll('.overlay').forEach(o => o.classList.remove('on'));
+  eliminarFn = null;
+}
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) cerrarModales(); });
+});
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 3000);
+}
+</script>
+</body>
+</html>
