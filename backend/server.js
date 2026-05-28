@@ -1,808 +1,296 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>UBERGPS — Operadora</title>
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --verde:#00C853;--verde2:#00E676;
-  --negro:#080B0F;--gris1:#111418;--gris2:#1A1F27;--gris3:#252C36;
-  --blanco:#F0F6FF;--muted:#6B7A8D;--rojo:#FF3D3D;--amarillo:#FFD000;--azul:#2979FF;
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;}
-body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-serif;
-  display:flex;flex-direction:column;height:100dvh;}
+require('dotenv').config();
+const express    = require('express');
+const http       = require('http');
+const { Server } = require('socket.io');
+const cors       = require('cors');
+const { createClient } = require('@supabase/supabase-js');
 
-/* LOGIN */
-#pantalla-login{position:fixed;inset:0;background:var(--negro);z-index:9999;
-  display:flex;align-items:center;justify-content:center;padding:20px;}
-.login-box{width:100%;max-width:340px;text-align:center;}
-.login-logo{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;color:var(--verde);}
-.login-sub{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:32px;}
-.linput{width:100%;background:var(--gris2);border:1px solid var(--gris3);border-radius:10px;
-  padding:13px 16px;color:var(--blanco);font-family:'DM Sans',sans-serif;font-size:15px;
-  margin-bottom:12px;outline:none;transition:border-color .2s;}
-.linput:focus{border-color:var(--verde);}
-.linput::placeholder{color:#3D4A58;}
-.lbtn{width:100%;border:none;border-radius:10px;padding:14px;background:var(--verde);
-  color:var(--negro);font-family:'Bebas Neue',sans-serif;font-size:20px;
-  letter-spacing:2px;cursor:pointer;transition:all .15s;}
-.lbtn:active{transform:scale(.97);background:#00b549;}
-.lerror{color:var(--rojo);font-size:12px;margin-top:10px;min-height:16px;}
+const app    = express();
+const server = http.createServer(app);
+const io     = new Server(server, {
+  cors: { origin: '*', methods: ['GET','POST'] }
+});
 
-/* HEADER */
-.header{background:var(--gris1);border-bottom:1px solid var(--gris3);
-  padding:0 14px;height:52px;display:flex;align-items:center;
-  justify-content:space-between;flex-shrink:0;z-index:200;}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;
-  letter-spacing:2px;color:var(--verde);}
-.logo span{color:var(--blanco);}
-.logo-sub{font-size:9px;color:var(--muted);letter-spacing:1px;}
-.badges{display:flex;gap:8px;}
-.badge{background:var(--gris2);border:1px solid var(--gris3);
-  border-radius:8px;padding:4px 10px;text-align:center;min-width:42px;}
-.badge-n{font-family:'Bebas Neue',sans-serif;font-size:19px;line-height:1;}
-.badge-n.g{color:var(--verde2);}
-.badge-n.r{color:var(--rojo);}
-.badge-n.b{color:var(--azul);}
-.badge-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+app.use(cors());
+app.use(express.json());
 
-/* MAPA */
-#map{flex:1;width:100%;min-height:0;z-index:1;}
+const path = require('path');
 
-/* PANEL */
-.panel{background:var(--gris1);border-top:1px solid var(--gris3);
-  flex-shrink:0;max-height:50vh;display:flex;flex-direction:column;z-index:100;}
-.tabs{display:flex;border-bottom:1px solid var(--gris3);flex-shrink:0;}
-.tab{flex:1;padding:10px 4px;font-size:10px;font-weight:600;
-  text-align:center;color:var(--muted);cursor:pointer;border:none;
-  background:none;text-transform:uppercase;letter-spacing:.5px;
-  border-bottom:2px solid transparent;transition:all .2s;}
-.tab.on{color:var(--verde2);border-bottom-color:var(--verde2);}
-.tab-body{flex:1;overflow-y:auto;}
-.tc{display:none;padding:12px 14px;}
-.tc.on{display:block;}
+app.get('/chofer', (req, res) => {
+  res.sendFile(path.join(__dirname, '../chofer/index.html'));
+});
+app.get('/operadora', (req, res) => {
+  res.sendFile(path.join(__dirname, '../operadora/index.html'));
+});
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../admin.html'));
+});
 
-/* FORM */
-.flabel{font-size:10px;text-transform:uppercase;letter-spacing:1px;
-  color:var(--muted);margin-bottom:4px;display:block;}
-.finput{width:100%;background:var(--gris2);border:1px solid var(--gris3);
-  border-radius:9px;padding:10px 12px;color:var(--blanco);
-  font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:10px;
-  outline:none;transition:border-color .2s;}
-.finput:focus{border-color:var(--verde);}
-.finput::placeholder{color:#3D4A58;}
-.wa-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:10px;}
-.wa-row .finput{margin-bottom:0;flex:1;}
-.btn-wa{background:#25D366;color:#fff;border:none;border-radius:9px;
-  padding:10px 13px;font-size:18px;cursor:pointer;flex-shrink:0;transition:all .15s;}
-.btn-wa:active{transform:scale(.95);}
-.wa-hint{font-size:11px;color:var(--muted);background:var(--gris2);
-  border-radius:8px;padding:8px 10px;margin-bottom:10px;
-  border-left:3px solid #25D366;line-height:1.5;}
-.btn-buscar{width:100%;background:var(--verde);color:var(--negro);
-  border:none;border-radius:10px;padding:13px;
-  font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;
-  cursor:pointer;transition:all .15s;}
-.btn-buscar:active{transform:scale(.98);background:#00b549;}
-.btn-buscar:disabled{background:var(--gris3);color:var(--muted);cursor:not-allowed;}
-
-/* CARD ASIGNACIÓN */
-.acard{background:var(--gris2);border-radius:10px;padding:12px;
-  margin-top:10px;border-left:3px solid var(--verde2);display:none;}
-.acard.on{display:block;animation:fadeUp .3s ease;}
-.acard.err{border-left-color:var(--rojo);}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.a-nombre{font-family:'Bebas Neue',sans-serif;font-size:20px;
-  color:var(--verde2);margin-bottom:2px;}
-.a-nombre.err{color:var(--rojo);font-size:14px;
-  font-family:'DM Sans',sans-serif;font-weight:600;}
-.a-det{font-size:11px;color:var(--muted);line-height:1.7;}
-.a-dist{font-size:13px;color:var(--blanco);font-weight:500;margin-top:5px;}
-
-/* BOTÓN WHATSAPP */
-.btn-whatsapp{width:100%;background:#25D366;color:#fff;
-  border:none;border-radius:10px;padding:12px;
-  font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;
-  cursor:pointer;margin-top:8px;transition:all .15s;
-  display:flex;align-items:center;justify-content:center;gap:8px;}
-.btn-whatsapp:active{transform:scale(.97);}
-
-/* LISTA CHOFERES */
-.citem{display:flex;align-items:center;gap:10px;
-  padding:9px 0;border-bottom:1px solid var(--gris2);}
-.citem:last-child{border-bottom:none;}
-.cav{width:36px;height:36px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Bebas Neue',sans-serif;font-size:16px;flex-shrink:0;}
-.cav.libre{background:rgba(0,230,118,.1);color:var(--verde2);
-  border:1.5px solid var(--verde2);}
-.cav.ocupado{background:rgba(255,61,61,.1);color:var(--rojo);
-  border:1.5px solid var(--rojo);}
-.cinfo{flex:1;min-width:0;}
-.cnombre{font-weight:600;font-size:13px;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;}
-.cdet{font-size:11px;color:var(--muted);}
-.pill{font-size:10px;font-weight:700;text-transform:uppercase;
-  padding:3px 8px;border-radius:20px;flex-shrink:0;}
-.pill.libre{background:rgba(0,230,118,.1);color:var(--verde2);}
-.pill.ocupado{background:rgba(255,61,61,.1);color:var(--rojo);}
-
-/* HISTORIAL */
-.hitem{background:var(--gris2);border-radius:9px;
-  padding:10px 12px;margin-bottom:8px;}
-.hhead{display:flex;justify-content:space-between;
-  align-items:center;margin-bottom:4px;}
-.hid{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--amarillo);}
-.hruta{font-size:11px;color:var(--muted);line-height:1.6;}
-.hchofer{font-size:12px;color:var(--blanco);font-weight:500;margin-top:3px;}
-.pill.activo{background:rgba(41,121,255,.1);color:var(--azul);}
-.pill.comp{background:rgba(0,200,83,.1);color:var(--verde);}
-
-/* BOTÓN LIBERAR */
-.btn-liberar{background:rgba(255,61,61,.12);color:var(--rojo);
-  border:1px solid rgba(255,61,61,.4);border-radius:7px;padding:4px 9px;
-  font-size:10px;font-weight:700;cursor:pointer;text-transform:uppercase;
-  letter-spacing:.5px;transition:all .15s;flex-shrink:0;}
-.btn-liberar:active{background:rgba(255,61,61,.3);}
-
-/* COLA */
-.cola-empty{text-align:center;padding:20px;color:var(--muted);font-size:13px;}
-.qitem{background:var(--gris2);border-radius:10px;padding:10px 12px;
-  margin-bottom:8px;border-left:3px solid var(--amarillo);}
-.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.qnum{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--amarillo);}
-.qruta{font-size:12px;color:var(--blanco);line-height:1.6;}
-.qtel{font-size:11px;color:var(--muted);margin-top:3px;}
-.btn-asignar-q{background:var(--verde);color:var(--negro);border:none;
-  border-radius:7px;padding:5px 11px;font-family:'Bebas Neue',sans-serif;
-  font-size:13px;letter-spacing:1px;cursor:pointer;transition:all .15s;}
-.btn-asignar-q:active{transform:scale(.96);}
-.btn-eliminar-q{background:rgba(255,61,61,.12);color:var(--rojo);
-  border:1px solid rgba(255,61,61,.4);border-radius:7px;padding:5px 9px;
-  font-size:12px;cursor:pointer;transition:all .15s;}
-
-/* HINT INTELIGENTE */
-.hint-int{background:rgba(255,208,0,.07);border:1px solid rgba(255,208,0,.25);
-  border-radius:9px;padding:9px 11px;margin-bottom:10px;font-size:11px;
-  color:var(--amarillo);line-height:1.6;display:none;}
-.hint-int.on{display:block;}
-
-/* DOT ONLINE */
-.dot{width:7px;height:7px;border-radius:50%;background:var(--verde2);
-  display:inline-block;margin-right:4px;animation:blink 2s infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-
-/* TOAST */
-.toast{position:fixed;bottom:calc(50vh + 12px);left:50%;
-  transform:translateX(-50%);background:var(--gris1);
-  border:1px solid var(--verde);color:var(--verde2);
-  padding:9px 18px;border-radius:20px;font-size:12px;font-weight:600;
-  z-index:9999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;}
-.toast.on{opacity:1;}
-
-/* Leaflet popup */
-.leaflet-popup-content-wrapper{background:var(--gris2)!important;
-  color:var(--blanco)!important;border-radius:10px!important;
-  font-family:'DM Sans',sans-serif!important;font-size:13px!important;}
-.leaflet-popup-tip{background:var(--gris2)!important;}
-</style>
-</head>
-<body>
-
-<!-- LOGIN -->
-<div id="pantalla-login">
-  <div class="login-box">
-    <div class="login-logo">UBERGPS</div>
-    <div class="login-sub">Panel Operadora</div>
-    <input class="linput" id="inp-user" placeholder="Usuario" autocomplete="off"/>
-    <input class="linput" id="inp-pass" placeholder="Contraseña" type="password"/>
-    <button class="lbtn" onclick="loginOperadora()">ENTRAR</button>
-    <div class="lerror" id="login-error"></div>
-  </div>
-</div>
-
-<div class="header">
-  <div>
-    <div class="logo">UBERGPS</div>
-    <div class="logo-sub"><span class="dot"></span>Panel Operadora · <span id="lbl-operadora">—</span></div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div class="badges">
-      <div class="badge"><div class="badge-n g" id="cnt-l">0</div><div class="badge-l">Libres</div></div>
-      <div class="badge"><div class="badge-n r" id="cnt-o">0</div><div class="badge-l">Ocupados</div></div>
-      <div class="badge"><div class="badge-n b" id="cnt-s">0</div><div class="badge-l">Hoy</div></div>
-    </div>
-    <button onclick="logoutOperadora()" style="background:var(--gris3);border:none;color:var(--muted);
-      padding:7px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;">
-      Salir
-    </button>
-  </div>
-</div>
-
-<div id="map"></div>
-
-<div class="panel">
-  <div class="tabs">
-    <button class="tab on" onclick="goTab('servicio',this)">🚕 Nuevo</button>
-    <button class="tab"    onclick="goTab('choferes',this)">👨‍✈️ Choferes</button>
-    <button class="tab"    onclick="goTab('cola',this)">⏳ Cola <span id="badge-cola" style="background:var(--amarillo);color:var(--negro);border-radius:10px;padding:0 5px;font-size:9px;font-weight:700;margin-left:2px;display:none">0</span></button>
-    <button class="tab"    onclick="goTab('historial',this)">📋 Historial</button>
-  </div>
-  <div class="tab-body">
-
-    <div class="tc on" id="tab-servicio">
-      <div class="hint-int" id="hint-int"></div>
-      <div class="wa-hint">📲 Pega el link de ubicación de WhatsApp del cliente</div>
-      <label class="flabel">📲 Link WhatsApp</label>
-      <div class="wa-row">
-        <input class="finput" id="wa-link" placeholder="https://maps.google.com/?q=7.77,-72.22"/>
-        <button class="btn-wa" onclick="parsearWA()">📍</button>
-      </div>
-      <label class="flabel">📍 Origen</label>
-      <input class="finput" id="origen" placeholder="Av. 19 de Abril, Centro..."
-        oninput="verificarInteligente(this.value)"/>
-      <label class="flabel">🏁 Destino</label>
-      <input class="finput" id="destino" placeholder="Terminal, UCAT..."/>
-      <label class="flabel">📞 Teléfono cliente</label>
-      <input class="finput" id="telefono" placeholder="0414-..." type="tel"/>
-      <button class="btn-buscar" id="btn-buscar" onclick="asignar()">
-        BUSCAR CHOFER MÁS CERCANO
-      </button>
-      <button class="btn-buscar" id="btn-encolar" onclick="encolarServicio()"
-        style="margin-top:8px;background:var(--gris3);color:var(--amarillo);border:1px solid rgba(255,208,0,.3);">
-        ⏳ GUARDAR EN COLA SIN ASIGNAR
-      </button>
-      <div class="acard" id="acard"></div>
-    </div>
-
-    <div class="tc" id="tab-choferes">
-      <div id="lista-choferes">
-        <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">
-          Esperando choferes conectados...
-        </div>
-      </div>
-    </div>
-
-    <div class="tc" id="tab-cola">
-      <div id="lista-cola"><div class="cola-empty">Sin solicitudes en cola</div></div>
-    </div>
-
-    <div class="tc" id="tab-historial">
-      <div id="lista-hist">
-        <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">
-          Sin servicios hoy
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-const SERVIDOR = 'https://ubergps.onrender.com';
-let map, markers = {}, clientePin = null;
-let choferes = [], historial = [];
-let origenCoords = null, servicioActual = null;
-
-// ── SUPABASE ──
-const sb = window.supabase.createClient(
-  'https://mzwyhiueievkwjwbvhes.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16d3loaXVlaWV2a3dqd2J2aGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODc2NDUsImV4cCI6MjA5NTM2MzY0NX0.K3TACDGhOm-6k_9AJk_SdNTUT8mj_dnTNvftx_-sagI'
+// ── Supabase ──
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
 );
 
-// ── LOGIN OPERADORA ──
-async function loginOperadora() {
-  const usuario  = document.getElementById('inp-user').value.trim();
-  const password = document.getElementById('inp-pass').value.trim();
-  if (!usuario || !password) {
-    document.getElementById('login-error').textContent = '⚠️ Ingresa usuario y contraseña';
-    return;
-  }
-  const { data } = await sb.from('operadoras')
-    .select('*').eq('usuario', usuario).eq('password', password).single();
-  if (data) {
-    document.getElementById('pantalla-login').style.display = 'none';
-    document.getElementById('lbl-operadora').textContent = data.nombre;
-    initMap();
-  } else {
-    document.getElementById('login-error').textContent = '⚠️ Usuario o contraseña incorrectos';
-  }
-}
+// ── Almacén en memoria (sockets activos) ──
+const choferes = {};
 
-function logoutOperadora() {
-  document.getElementById('pantalla-login').style.display = 'flex';
-  document.getElementById('inp-user').value = '';
-  document.getElementById('inp-pass').value = '';
-  document.getElementById('login-error').textContent = '';
-}
+// ── REST: choferes disponibles ──
+app.get('/choferes', (req, res) => {
+  const disponibles = Object.values(choferes).filter(c => c.libre);
+  res.json(disponibles);
+});
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('inp-pass').addEventListener('keydown', e => {
-    if (e.key === 'Enter') loginOperadora();
+// ── REST: historial de servicios ──
+app.get('/servicios', async (req, res) => {
+  const { data, error } = await supabase
+    .from('servicios')
+    .select('*, choferes(nombre, placa)')
+    .order('creado_en', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
+// ── REST: crear servicio y asignar chofer ──
+app.post('/servicio', async (req, res) => {
+  const { origen, destino, telefono, lat, lng } = req.body;
+
+  const disponibles = Object.values(choferes).filter(c => c.libre);
+  if (!disponibles.length) {
+    return res.status(404).json({ error: 'No hay choferes disponibles' });
+  }
+
+  const haversine = (la1,lo1,la2,lo2) => {
+    const R=6371000, p=Math.PI/180;
+    const a = Math.sin((la2-la1)*p/2)**2 +
+              Math.cos(la1*p)*Math.cos(la2*p)*Math.sin((lo2-lo1)*p/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  };
+
+  let mejor = null, minD = Infinity;
+  disponibles.forEach(c => {
+    const d = haversine(lat, lng, c.lat, c.lng);
+    if (d < minD) { minD = d; mejor = c; }
+  });
+
+  mejor.libre = false;
+
+  await supabase.from('choferes').update({ libre: false }).eq('id', mejor.id);
+
+  const { data: svcData, error } = await supabase
+    .from('servicios')
+    .insert({
+      origen,
+      destino,
+      telefono_cliente: telefono,
+      chofer_id: mejor.id,
+      estado: 'activo'
+    })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  const servicio = {
+    ...svcData,
+    chofer: mejor,
+    distancia: (minD/1000).toFixed(1),
+    eta: Math.ceil(minD/350),
+    hora: new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'})
+  };
+
+  io.to(mejor.socketId).emit('servicio_asignado', servicio);
+  io.emit('choferes_actualizado', Object.values(choferes));
+  res.json(servicio);
+});
+
+// ── REST: liberar chofer manualmente (desde operadora) ──
+app.post('/liberar-chofer', async (req, res) => {
+  const { choferId } = req.body;
+  if (!choferId) return res.status(400).json({ error: 'Falta choferId' });
+
+  const socketId = Object.keys(choferes).find(k => choferes[k].id === choferId);
+  if (socketId) choferes[socketId].libre = true;
+
+  await supabase.from('choferes').update({ libre: true }).eq('id', choferId);
+
+  const { data: svcActivo } = await supabase
+    .from('servicios')
+    .select('id')
+    .eq('chofer_id', choferId)
+    .eq('estado', 'activo')
+    .order('creado_en', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (svcActivo) {
+    await supabase
+      .from('servicios')
+      .update({ estado: 'completado', completado_en: new Date() })
+      .eq('id', svcActivo.id);
+  }
+
+  io.emit('choferes_actualizado', Object.values(choferes));
+
+  const { data: serviciosActualizados } = await supabase
+    .from('servicios').select('*').order('creado_en', { ascending: false });
+  io.emit('servicio_actualizado', serviciosActualizados || []);
+
+  res.json({ ok: true });
+});
+
+// ── REST: Webhook WhatsApp (Twilio) ──
+app.post('/whatsapp', express.urlencoded({ extended: false }), async (req, res) => {
+  const from = (req.body.From || '').replace('whatsapp:', '').trim();
+  const body = (req.body.Body || '').trim().toLowerCase();
+
+  console.log(`📱 WhatsApp de ${from}: "${body}"`);
+
+  const chofer = Object.values(choferes).find(c => {
+    const tel = (c.telefono || c.tel || '').replace(/\D/g, '');
+    const fromClean = from.replace(/\D/g, '');
+    return fromClean.endsWith(tel) || tel.endsWith(fromClean);
+  });
+
+  const twiml = (msg) =>
+    `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${msg}</Message></Response>`;
+
+  if (!chofer) {
+    return res.type('text/xml').send(twiml('No encontré tu registro en el sistema.'));
+  }
+
+  if (body === '1') {
+    return res.type('text/xml').send(twiml('✅ Servicio aceptado. ¡Buen viaje!'));
+  }
+
+  if (body === '2') {
+    if (chofer.id) {
+      await supabase.from('choferes').update({ libre: true }).eq('id', chofer.id);
+      chofer.libre = true;
+      io.emit('choferes_actualizado', Object.values(choferes));
+    }
+    return res.type('text/xml').send(twiml('Servicio rechazado. Quedas disponible nuevamente.'));
+  }
+
+  if (body === 'listo') {
+    const socketId = Object.keys(choferes).find(k => choferes[k].id === chofer.id);
+    if (socketId) choferes[socketId].libre = true;
+    if (chofer.id) {
+      await supabase.from('choferes').update({ libre: true }).eq('id', chofer.id);
+    }
+
+    const { data: svcActivo } = await supabase
+      .from('servicios')
+      .select('id')
+      .eq('chofer_id', chofer.id)
+      .eq('estado', 'activo')
+      .order('creado_en', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (svcActivo) {
+      await supabase
+        .from('servicios')
+        .update({ estado: 'completado', completado_en: new Date() })
+        .eq('id', svcActivo.id);
+    }
+
+    io.emit('choferes_actualizado', Object.values(choferes));
+
+    const { data: serviciosActualizados } = await supabase
+      .from('servicios').select('*').order('creado_en', { ascending: false });
+    io.emit('servicio_actualizado', serviciosActualizados || []);
+
+    return res.type('text/xml').send(twiml('✅ Servicio completado. ¡Gracias!'));
+  }
+
+  res.type('text/xml').send(twiml('Responde:\n1 = Aceptar\n2 = Rechazar\nListo = Completar servicio'));
+});
+
+// ── WebSockets ──
+io.on('connection', (socket) => {
+  console.log(`🔌 Conectado: ${socket.id}`);
+
+  socket.on('chofer_conectado', async (data) => {
+    let choferDB = null;
+
+    if (data.placa) {
+      const { data: row } = await supabase
+        .from('choferes')
+        .select('*')
+        .eq('placa', data.placa)
+        .single();
+      choferDB = row;
+    }
+
+    if (choferDB) {
+      if (choferDB.activo === false) {
+        socket.emit('chofer_validado', { ok: false, mensaje: '❌ Tu cuenta está desactivada. Contacta al administrador.' });
+        return;
+      }
+
+      choferes[socket.id] = { ...choferDB, socketId: socket.id, libre: true };
+
+      await supabase.from('choferes').update({ libre: true }).eq('id', choferDB.id);
+
+      socket.emit('chofer_validado', { ok: true, nombre: choferDB.nombre });
+      console.log(`🚕 Chofer online: ${choferDB.nombre}`);
+      io.emit('choferes_actualizado', Object.values(choferes));
+    } else {
+      socket.emit('chofer_validado', { ok: false, mensaje: '❌ Placa no registrada. Verifica e intenta de nuevo.' });
+    }
+  });
+
+  socket.on('ubicacion', async (data) => {
+    if (choferes[socket.id]) {
+      choferes[socket.id].lat = data.lat;
+      choferes[socket.id].lng = data.lng;
+
+      if (choferes[socket.id].id) {
+        await supabase
+          .from('choferes')
+          .update({ lat: data.lat, lng: data.lng, actualizado_en: new Date() })
+          .eq('id', choferes[socket.id].id);
+      }
+
+      io.emit('choferes_actualizado', Object.values(choferes));
+    }
+  });
+
+  socket.on('servicio_completado', async (id) => {
+    if (choferes[socket.id]) {
+      choferes[socket.id].libre = true;
+
+      if (choferes[socket.id].id) {
+        await supabase.from('choferes').update({ libre: true }).eq('id', choferes[socket.id].id);
+      }
+
+      await supabase
+        .from('servicios')
+        .update({ estado: 'completado', completado_en: new Date() })
+        .eq('id', id);
+
+      io.emit('choferes_actualizado', Object.values(choferes));
+
+      const { data: serviciosActualizados } = await supabase
+        .from('servicios').select('*').order('creado_en', { ascending: false });
+      io.emit('servicio_actualizado', serviciosActualizados || []);
+    }
+  });
+
+  socket.on('disconnect', async () => {
+    console.log(`❌ Desconectado: ${socket.id}`);
+    const chofer = choferes[socket.id];
+    if (chofer?.id) {
+      await supabase.from('choferes').update({ libre: false }).eq('id', chofer.id);
+    }
+    delete choferes[socket.id];
+    io.emit('choferes_actualizado', Object.values(choferes));
   });
 });
 
-// ── MAPA ──
-function initMap() {
-  map = L.map('map', {zoomControl:false, attributionControl:false})
-    .setView([7.7720,-72.2280], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    {maxZoom:19}).addTo(map);
-  L.control.zoom({position:'topright'}).addTo(map);
-  initSocket();
-}
-
-// ── SOCKET ──
-function initSocket() {
-  const socket = io(SERVIDOR);
-
-  socket.on('connect', () => {
-    toast('✅ Conectada al servidor');
-  });
-
-  socket.on('choferes_actualizado', (lista) => {
-    choferes = lista;
-    actualizarMarkers();
-    renderChoferes();
-    actualizarStats();
-  });
-
-  socket.on('servicio_actualizado', (lista) => {
-    historial = lista;
-    renderHistorial();
-    actualizarStats();
-  });
-}
-function iconChofer(libre, pulso=false) {
-  const c = libre ? '#00E676' : '#FF3D3D';
-  const sz = pulso ? 40 : 32;
-  const anm = pulso ? `<circle cx="16" cy="16" r="15" fill="none" stroke="${c}" stroke-width="1.5">
-    <animate attributeName="r" values="10;18;10" dur="1.2s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values=".8;0;.8" dur="1.2s" repeatCount="indefinite"/>
-  </circle>` : '';
-  return L.divIcon({
-    html:`<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="0 0 32 32">
-      ${anm}
-      <circle cx="16" cy="16" r="11" fill="${c}" opacity=".15"/>
-      <circle cx="16" cy="16" r="8" fill="${c}"/>
-      <text x="16" y="20" text-anchor="middle" font-size="10">🚕</text>
-    </svg>`,
-    className:'',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2],popupAnchor:[0,-sz/2]
-  });
-}
-
-function iconCliente() {
-  return L.divIcon({
-    html:`<svg xmlns="http://www.w3.org/2000/svg" width="28" height="38" viewBox="0 0 28 38">
-      <path d="M14 1C8 1 3 6 3 13C3 23 14 37 14 37C14 37 25 23 25 13C25 6 20 1 14 1Z"
-        fill="#FFD000" stroke="#080B0F" stroke-width="1.5"/>
-      <circle cx="14" cy="13" r="5" fill="#080B0F"/>
-    </svg>`,
-    className:'',iconSize:[28,38],iconAnchor:[14,37],popupAnchor:[0,-38]
-  });
-}
-
-// ── ICONOS ──
-function actualizarMarkers() {
-  // Remover markers viejos
-  Object.keys(markers).forEach(id => {
-    if (!choferes.find(c => c.id === id)) {
-      map.removeLayer(markers[id]);
-      delete markers[id];
-    }
-  });
-
-  choferes.forEach(c => {
-    const popup = `<b>${c.nombre}</b><br>🚗 ${c.placa}<br>📞 ${c.tel||'—'}<br>
-      <span style="color:${c.libre?'#00E676':'#FF3D3D'};font-weight:700">
-      ${c.libre?'✅ Disponible':'🔴 En servicio'}</span>`;
-
-    if (markers[c.id]) {
-      markers[c.id].setLatLng([c.lat, c.lng]);
-      markers[c.id].setIcon(iconChofer(c.libre));
-      markers[c.id].getPopup().setContent(popup);
-    } else {
-      markers[c.id] = L.marker([c.lat, c.lng], {icon: iconChofer(c.libre)})
-        .addTo(map).bindPopup(popup);
-    }
-  });
-}
-
-// ── GEOCODIFICAR DIRECCIÓN DE TEXTO ──
-async function geocodificarTexto(texto) {
-  try {
-    const query = encodeURIComponent(texto + ', San Cristóbal, Táchira, Venezuela');
-    const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
-    const res = await fetch(url, {
-      headers: { 'Accept-Language': 'es' }
-    });
-    const data = await res.json();
-    if (data.length > 0) {
-      return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-    }
-  } catch(e) {
-    console.log('Error geocodificando:', e);
-  }
-  return null;
-}
-
-// ── PARSEAR WHATSAPP ──
-function parsearWA() {
-  const raw = document.getElementById('wa-link').value.trim();
-  if (!raw) { toast('⚠️ Pega un link primero'); return; }
-
-  const re = /([+-]?\d{1,2}\.\d+)[,\s]+([+-]?\d{1,3}\.\d+)/;
-  const m = raw.match(re);
-
-  const lat = m ? parseFloat(m[1]) : 7.7703 + (Math.random()-.5)*.015;
-  const lng = m ? parseFloat(m[2]) : -72.2250 + (Math.random()-.5)*.015;
-
-  origenCoords = [lat, lng];
-  ponerPinCliente(lat, lng);
-  document.getElementById('origen').value = `📍 GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-  document.getElementById('wa-link').value = '';
-  toast(m ? '✅ Ubicación cargada' : '📍 Ubicación simulada');
-}
-
-function ponerPinCliente(lat, lng) {
-  if (clientePin) map.removeLayer(clientePin);
-  clientePin = L.marker([lat,lng], {icon:iconCliente()})
-    .addTo(map).bindPopup('<b>📍 Cliente</b>').openPopup();
-  map.flyTo([lat,lng], 15, {duration:1});
-}
-
-// ── HAVERSINE ──
-function haversine(la1,lo1,la2,lo2) {
-  const R=6371000, p=Math.PI/180;
-  const a = Math.sin((la2-la1)*p/2)**2 +
-    Math.cos(la1*p)*Math.cos(la2*p)*Math.sin((lo2-lo1)*p/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-// ── ASIGNAR ──
-async function asignar() {
-  const origen   = document.getElementById('origen').value.trim();
-  const destino  = document.getElementById('destino').value.trim();
-  const telefono = document.getElementById('telefono').value.trim();
-  const btn      = document.getElementById('btn-buscar');
-  const card     = document.getElementById('acard');
-
-  if (!origen || !destino) {
-    card.className='acard err on';
-    card.innerHTML=`<div class="a-nombre err">⚠️ Ingresa origen y destino</div>`;
-    return;
-  }
-
-  btn.disabled=true; btn.textContent='BUSCANDO...';
-
-  // Coordenadas de origen
-  let coords = origenCoords;
-if (!coords) {
-  toast('📍 Buscando ubicación...');
-  coords = await geocodificarTexto(origen);
-  if (!coords) {
-    coords = [7.7703+(Math.random()-.5)*.02, -72.2250+(Math.random()-.5)*.02];
-    toast('⚠️ Dirección no encontrada, usando ubicación aproximada');
-  } else {
-    toast('✅ Dirección ubicada en el mapa');
-  }
-}
-origenCoords = null;
-
-  // Choferes libres
-  const libres = choferes.filter(c => c.libre);
-  if (!libres.length) {
-    card.className='acard err on';
-    card.innerHTML=`<div class="a-nombre err">❌ No hay choferes disponibles</div>`;
-    btn.disabled=false; btn.textContent='BUSCAR CHOFER MÁS CERCANO';
-    return;
-  }
-
-  // Más cercano
-  let mejor=null, minD=Infinity;
-  libres.forEach(c => {
-    const d = haversine(coords[0],coords[1],c.lat,c.lng);
-    if (d<minD) { minD=d; mejor=c; }
-  });
-
-  const km = (minD/1000).toFixed(1);
-  const eta = Math.ceil(minD/350);
-
-  // Llamar al backend
-  try {
-    const res = await fetch(`${SERVIDOR}/servicio`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        origen, destino, telefono,
-        lat: coords[0], lng: coords[1]
-      })
-    });
-    const svc = await res.json();
-
-    // Pin cliente
-    ponerPinCliente(coords[0], coords[1]);
-
-    // Línea de ruta
-    const ruta = L.polyline([coords,[mejor.lat,mejor.lng]],
-      {color:'#00E676',weight:3,dashArray:'8 6',opacity:.8}).addTo(map);
-    setTimeout(()=>map.removeLayer(ruta), 9000);
-
-    // Volar al chofer
-    map.flyTo([mejor.lat,mejor.lng],15,{duration:1.3});
-    if(markers[mejor.id]) {
-      markers[mejor.id].setIcon(iconChofer(false,true));
-      markers[mejor.id].openPopup();
-      setTimeout(()=>markers[mejor.id]?.setIcon(iconChofer(false)),5000);
-    }
-
-    servicioActual = svc;
-
-    // Card resultado con botón WhatsApp
-    card.className='acard on';
-    card.innerHTML=`
-      <div class="a-nombre">✅ ${mejor.nombre}</div>
-      <div class="a-det">🚗 ${mejor.placa} · 📍 ${mejor.zona||'En ruta'} · 📞 ${mejor.tel||'—'}</div>
-      <div class="a-dist">📏 ${km} km · ⏱️ ~${eta} min de llegada</div>
-      <button class="btn-whatsapp" onclick="abrirWhatsApp('${mejor.tel}','${mejor.nombre}','${origen}','${destino}','${telefono}','${km}')">
-        📲 ENVIAR POR WHATSAPP AL CHOFER
-      </button>
-    `;
-
-    historial.unshift(svc);
-    renderHistorial();
-    actualizarStats();
-    toast(`🚕 ${mejor.nombre} asignado · ${km} km`);
-
-  } catch(e) {
-    card.className='acard err on';
-    card.innerHTML=`<div class="a-nombre err">❌ Error conectando al servidor</div>`;
-  }
-
-  btn.disabled=false; btn.textContent='BUSCAR CHOFER MÁS CERCANO';
-  document.getElementById('origen').value='';
-  document.getElementById('destino').value='';
-  document.getElementById('telefono').value='';
-}
-
-// ── WHATSAPP DEEP LINK ──
-function abrirWhatsApp(tel, nombre, origen, destino, telCliente, km) {
-  const numero = tel.replace(/\D/g,'');
-  const msg = encodeURIComponent(
-`🚕 *UBERGPS* — Servicio Asignado
-━━━━━━━━━━━━━━━
-📍 *Origen:* ${origen}
-🏁 *Destino:* ${destino}
-📞 *Cliente:* ${telCliente||'No indicado'}
-📏 *Distancia:* ${km} km
-━━━━━━━━━━━━━━━
-Responde:
-1 = Acepto el servicio
-2 = Rechazo el servicio
-
-Cuando termines responde: *listo*`);
-  window.open(`https://wa.me/58${numero}?text=${msg}`, '_blank');
-}
-
-// ── TABS ──
-function goTab(id, el) {
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('tab-'+id).classList.add('on');
-}
-
-// ── STATS ──
-function actualizarStats() {
-  const libres   = choferes.filter(c=>c.libre).length;
-  const ocupados = choferes.filter(c=>!c.libre).length;
-  document.getElementById('cnt-l').textContent = libres;
-  document.getElementById('cnt-o').textContent = ocupados;
-  document.getElementById('cnt-s').textContent = historial.length;
-}
-
-// ── LISTA CHOFERES ──
-function renderChoferes() {
-  const el = document.getElementById('lista-choferes');
-  if (!choferes.length) {
-    el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">
-      Esperando choferes conectados...</div>`;
-    return;
-  }
-  el.innerHTML = choferes.map(c=>`
-    <div class="citem">
-      <div class="cav ${c.libre?'libre':'ocupado'}">${c.nombre[0]}</div>
-      <div class="cinfo">
-        <div class="cnombre">${c.nombre}</div>
-        <div class="cdet">🚗 ${c.placa} · 📞 ${c.tel||'—'}</div>
-      </div>
-      <span class="pill ${c.libre?'libre':'ocupado'}">${c.libre?'Libre':'Ocupado'}</span>
-    </div>`).join('');
-}
-
-// ── LISTA CHOFERES con botón Liberar ──
-function renderChoferes() {
-  const el = document.getElementById('lista-choferes');
-  if (!choferes.length) {
-    el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">
-      Esperando choferes conectados...</div>`;
-    return;
-  }
-  el.innerHTML = choferes.map(c=>`
-    <div class="citem">
-      <div class="cav ${c.libre?'libre':'ocupado'}">${(c.nombre||'?')[0]}</div>
-      <div class="cinfo">
-        <div class="cnombre">${c.nombre}</div>
-        <div class="cdet">🚗 ${c.placa} · 📞 ${c.tel||c.telefono||'—'}</div>
-      </div>
-      ${c.libre
-        ? `<span class="pill libre">Libre</span>`
-        : `<button class="btn-liberar" onclick="liberarChofer('${c.id}')">🔓 Liberar</button>`
-      }
-    </div>`).join('');
-}
-
-// ── LIBERAR CHOFER MANUALMENTE ──
-async function liberarChofer(choferId) {
-  if (!confirm('¿Liberar a este chofer manualmente?\nEsto marcará su servicio actual como completado.')) return;
-  try {
-    const res = await fetch(`${SERVIDOR}/liberar-chofer`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ choferId })
-    });
-    if (res.ok) toast('✅ Chofer liberado correctamente');
-    else toast('❌ Error al liberar chofer');
-  } catch(e) {
-    toast('❌ Error de conexión');
-  }
-}
-
-// ── ASIGNACIÓN INTELIGENTE: mostrar choferes ocupados por terminar ──
-function verificarInteligente(origenTexto) {
-  const hint = document.getElementById('hint-int');
-  const ocupados = choferes.filter(c => !c.libre);
-  if (!ocupados.length || origenTexto.length < 4) {
-    hint.classList.remove('on');
-    return;
-  }
-  const serviciosActivos = historial.filter(s => s.estado === 'activo');
-  const sugerencias = [];
-  ocupados.forEach(chofer => {
-    const svc = serviciosActivos.find(s =>
-      s.chofer_id === chofer.id || s.chofer?.id === chofer.id
-    );
-    if (svc) sugerencias.push(
-      `🚕 <b>${chofer.nombre}</b> (${chofer.placa}) — terminando en: <i>${svc.destino}</i>`
-    );
-  });
-  if (sugerencias.length) {
-    hint.innerHTML = `⚡ <b>Choferes próximos a quedar libres:</b><br>${sugerencias.join('<br>')}`;
-    hint.classList.add('on');
-  } else {
-    hint.classList.remove('on');
-  }
-}
-
-// ── COLA DE SERVICIOS SIN ASIGNAR ──
-let cola = [];
-
-function encolarServicio() {
-  const origen   = document.getElementById('origen').value.trim();
-  const destino  = document.getElementById('destino').value.trim();
-  const telefono = document.getElementById('telefono').value.trim();
-  if (!origen || !destino) { toast('⚠️ Ingresa origen y destino primero'); return; }
-
-  cola.push({
-    id: Date.now(), origen, destino, telefono,
-    coords: origenCoords,
-    hora: new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'})
-  });
-  origenCoords = null;
-
-  document.getElementById('origen').value   = '';
-  document.getElementById('destino').value  = '';
-  document.getElementById('telefono').value = '';
-  document.getElementById('wa-link').value  = '';
-  document.getElementById('hint-int').classList.remove('on');
-
-  renderCola();
-  toast('⏳ Guardado en cola');
-  // Ir al tab cola
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tab')[2].classList.add('on');
-  document.getElementById('tab-cola').classList.add('on');
-}
-
-function renderCola() {
-  const el    = document.getElementById('lista-cola');
-  const badge = document.getElementById('badge-cola');
-  if (!cola.length) {
-    el.innerHTML = `<div class="cola-empty">Sin solicitudes en cola</div>`;
-    badge.style.display = 'none';
-    return;
-  }
-  badge.style.display = 'inline';
-  badge.textContent   = cola.length;
-  el.innerHTML = cola.map((item,i) => `
-    <div class="qitem">
-      <div class="qhead">
-        <span class="qnum">⏳ #${i+1} · ${item.hora}</span>
-        <div style="display:flex;gap:6px">
-          <button class="btn-asignar-q" onclick="asignarDesdeCola(${item.id})">🚕 ASIGNAR</button>
-          <button class="btn-eliminar-q" onclick="eliminarDeCola(${item.id})">✕</button>
-        </div>
-      </div>
-      <div class="qruta">📍 ${item.origen}<br>🏁 ${item.destino}</div>
-      ${item.telefono?`<div class="qtel">📞 ${item.telefono}</div>`:''}
-    </div>`).join('');
-}
-
-function eliminarDeCola(id) {
-  cola = cola.filter(c => c.id !== id);
-  renderCola();
-  toast('🗑️ Solicitud eliminada');
-}
-
-async function asignarDesdeCola(id) {
-  const item = cola.find(c => c.id === id);
-  if (!item) return;
-  cola = cola.filter(c => c.id !== id);
-  renderCola();
-
-  document.getElementById('origen').value   = item.origen;
-  document.getElementById('destino').value  = item.destino;
-  document.getElementById('telefono').value = item.telefono || '';
-  origenCoords = item.coords;
-
-  // Ir a tab Nuevo y asignar
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.tab')[0].classList.add('on');
-  document.getElementById('tab-servicio').classList.add('on');
-
-  await asignar();
-}
-
-// ── HISTORIAL ──
-function renderHistorial() {
-  const el = document.getElementById('lista-hist');
-  if (!historial.length) {
-    el.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">
-      Sin servicios hoy</div>`;
-    return;
-  }
-  el.innerHTML = historial.map(s=>`
-    <div class="hitem">
-      <div class="hhead">
-        <span class="hid">${s.id} · ${s.hora}</span>
-        <span class="pill ${s.estado==='activo'?'activo':'comp'}">
-          ${s.estado==='activo'?'🔵 Activo':'✅ Listo'}</span>
-      </div>
-      <div class="hchofer">👨‍✈️ ${s.chofer?.nombre||'—'}</div>
-      <div class="hruta">📍 ${s.origen}<br>🏁 ${s.destino}</div>
-    </div>`).join('');
-}
-
-// ── TOAST ──
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent=msg; t.classList.add('on');
-  setTimeout(()=>t.classList.remove('on'),3200);
-}
-
-
-</script>
-</body>
-</html>
+// ── Arrancar servidor ──
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`✅ UBERGPS backend corriendo en http://localhost:${PORT}`);
+});
