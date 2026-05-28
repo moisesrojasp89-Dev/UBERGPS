@@ -211,7 +211,7 @@ io.on('connection', (socket) => {
     if (choferDB) {
       // Verificar que el chofer esté activo en el sistema
       if (choferDB.activo === false) {
-        socket.emit('login_error', 'Tu cuenta está desactivada. Contacta al administrador.');
+        socket.emit('chofer_validado', { ok: false, mensaje: '❌ Tu cuenta está desactivada. Contacta al administrador.' });
         return;
       }
 
@@ -226,10 +226,10 @@ io.on('connection', (socket) => {
         .update({ libre: true })
         .eq('id', choferDB.id);
 
-      socket.emit('login_ok', choferDB);
+      socket.emit('chofer_validado', { ok: true, nombre: choferDB.nombre });
     } else {
       // Placa no encontrada en la BD
-      socket.emit('login_error', 'Placa no registrada en el sistema. Verifica e intenta de nuevo.');
+      socket.emit('chofer_validado', { ok: false, mensaje: '❌ Placa no registrada. Verifica e intenta de nuevo.' });
       return;
     }
 
