@@ -41,9 +41,7 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
 .header{background:var(--gris1);border-bottom:1px solid var(--gris3);
   padding:0 14px;height:52px;display:flex;align-items:center;
   justify-content:space-between;flex-shrink:0;z-index:200;}
-.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;
-  letter-spacing:2px;color:var(--verde);}
-.logo span{color:var(--blanco);}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--verde);}
 .logo-sub{font-size:9px;color:var(--muted);letter-spacing:1px;}
 .badges{display:flex;gap:8px;}
 .badge{background:var(--gris2);border:1px solid var(--gris3);
@@ -59,7 +57,7 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
 
 /* PANEL */
 .panel{background:var(--gris1);border-top:1px solid var(--gris3);
-  flex-shrink:0;max-height:50vh;display:flex;flex-direction:column;z-index:100;}
+  flex-shrink:0;max-height:52vh;display:flex;flex-direction:column;z-index:100;}
 .tabs{display:flex;border-bottom:1px solid var(--gris3);flex-shrink:0;}
 .tab{flex:1;padding:10px 4px;font-size:10px;font-weight:600;
   text-align:center;color:var(--muted);cursor:pointer;border:none;
@@ -90,27 +88,24 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
 .btn-buscar{width:100%;background:var(--verde);color:var(--negro);
   border:none;border-radius:10px;padding:13px;
   font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;
-  cursor:pointer;transition:all .15s;}
+  cursor:pointer;transition:all .15s;margin-bottom:6px;}
 .btn-buscar:active{transform:scale(.98);background:#00b549;}
 .btn-buscar:disabled{background:var(--gris3);color:var(--muted);cursor:not-allowed;}
 
 /* CARD ASIGNACIÓN */
 .acard{background:var(--gris2);border-radius:10px;padding:12px;
-  margin-top:10px;border-left:3px solid var(--verde2);display:none;}
+  margin-top:8px;border-left:3px solid var(--verde2);display:none;}
 .acard.on{display:block;animation:fadeUp .3s ease;}
 .acard.err{border-left-color:var(--rojo);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.a-nombre{font-family:'Bebas Neue',sans-serif;font-size:20px;
-  color:var(--verde2);margin-bottom:2px;}
-.a-nombre.err{color:var(--rojo);font-size:14px;
-  font-family:'DM Sans',sans-serif;font-weight:600;}
+.a-nombre{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--verde2);margin-bottom:2px;}
+.a-nombre.err{color:var(--rojo);font-size:14px;font-family:'DM Sans',sans-serif;font-weight:600;}
 .a-det{font-size:11px;color:var(--muted);line-height:1.7;}
 .a-dist{font-size:13px;color:var(--blanco);font-weight:500;margin-top:5px;}
 
 /* BOTÓN WHATSAPP */
-.btn-whatsapp{width:100%;background:#25D366;color:#fff;
-  border:none;border-radius:10px;padding:12px;
-  font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;
+.btn-whatsapp{width:100%;background:#25D366;color:#fff;border:none;border-radius:10px;
+  padding:12px;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;
   cursor:pointer;margin-top:8px;transition:all .15s;
   display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-whatsapp:active{transform:scale(.97);}
@@ -122,29 +117,57 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
 .cav{width:36px;height:36px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-family:'Bebas Neue',sans-serif;font-size:16px;flex-shrink:0;}
-.cav.libre{background:rgba(0,230,118,.1);color:var(--verde2);
-  border:1.5px solid var(--verde2);}
-.cav.ocupado{background:rgba(255,61,61,.1);color:var(--rojo);
-  border:1.5px solid var(--rojo);}
+.cav.libre{background:rgba(0,230,118,.1);color:var(--verde2);border:1.5px solid var(--verde2);}
+.cav.ocupado{background:rgba(255,61,61,.1);color:var(--rojo);border:1.5px solid var(--rojo);}
 .cinfo{flex:1;min-width:0;}
-.cnombre{font-weight:600;font-size:13px;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;}
+.cnombre{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cdet{font-size:11px;color:var(--muted);}
 .pill{font-size:10px;font-weight:700;text-transform:uppercase;
   padding:3px 8px;border-radius:20px;flex-shrink:0;}
 .pill.libre{background:rgba(0,230,118,.1);color:var(--verde2);}
 .pill.ocupado{background:rgba(255,61,61,.1);color:var(--rojo);}
 
+/* BOTÓN ASIGNAR RUTA desde lista choferes */
+.btn-asignar-c{background:rgba(0,200,83,.12);color:var(--verde2);
+  border:1px solid rgba(0,230,118,.3);border-radius:7px;padding:4px 9px;
+  font-size:10px;font-weight:700;cursor:pointer;text-transform:uppercase;
+  letter-spacing:.5px;transition:all .15s;flex-shrink:0;}
+.btn-asignar-c:active{background:rgba(0,200,83,.3);}
+.btn-asignar-c.ocupado-c{background:rgba(255,208,0,.1);color:var(--amarillo);
+  border-color:rgba(255,208,0,.3);}
+
 /* HISTORIAL */
-.hitem{background:var(--gris2);border-radius:9px;
-  padding:10px 12px;margin-bottom:8px;}
-.hhead{display:flex;justify-content:space-between;
-  align-items:center;margin-bottom:4px;}
+.hitem{background:var(--gris2);border-radius:9px;padding:10px 12px;margin-bottom:8px;}
+.hhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
 .hid{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--amarillo);}
 .hruta{font-size:11px;color:var(--muted);line-height:1.6;}
 .hchofer{font-size:12px;color:var(--blanco);font-weight:500;margin-top:3px;}
 .pill.activo{background:rgba(41,121,255,.1);color:var(--azul);}
 .pill.comp{background:rgba(0,200,83,.1);color:var(--verde);}
+
+/* MODAL SELECCIÓN CHOFER */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:8000;
+  display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.on{display:flex;}
+.modal-box{background:var(--gris1);border-radius:16px 16px 0 0;
+  width:100%;max-width:480px;padding:16px;max-height:70vh;
+  display:flex;flex-direction:column;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:18px;
+  color:var(--blanco);margin-bottom:4px;letter-spacing:1px;}
+.modal-sub{font-size:11px;color:var(--muted);margin-bottom:12px;}
+.modal-list{overflow-y:auto;flex:1;}
+.mitem{display:flex;align-items:center;gap:10px;padding:10px 8px;
+  border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:4px;}
+.mitem:active,.mitem:hover{background:var(--gris2);}
+.mitem-info{flex:1;min-width:0;}
+.mitem-nombre{font-weight:600;font-size:13px;}
+.mitem-det{font-size:11px;color:var(--muted);}
+.mitem-dist{font-size:12px;font-weight:700;flex-shrink:0;}
+.mitem-dist.libre{color:var(--verde2);}
+.mitem-dist.ocupado{color:var(--amarillo);}
+.btn-cancelar-modal{width:100%;margin-top:10px;background:var(--gris3);
+  color:var(--muted);border:none;border-radius:10px;padding:12px;
+  font-family:'Bebas Neue',sans-serif;font-size:16px;cursor:pointer;}
 
 /* DOT ONLINE */
 .dot{width:7px;height:7px;border-radius:50%;background:var(--verde2);
@@ -152,7 +175,7 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
 /* TOAST */
-.toast{position:fixed;bottom:calc(50vh + 12px);left:50%;
+.toast{position:fixed;bottom:calc(52vh + 12px);left:50%;
   transform:translateX(-50%);background:var(--gris1);
   border:1px solid var(--verde);color:var(--verde2);
   padding:9px 18px;border-radius:20px;font-size:12px;font-weight:600;
@@ -180,6 +203,7 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
   </div>
 </div>
 
+<!-- HEADER -->
 <div class="header">
   <div>
     <div class="logo">UBERGPS</div>
@@ -199,6 +223,16 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
 </div>
 
 <div id="map"></div>
+
+<!-- MODAL ELEGIR CHOFER -->
+<div class="modal-overlay" id="modal-choferes">
+  <div class="modal-box">
+    <div class="modal-title">🚕 ELIGE EL CHOFER</div>
+    <div class="modal-sub">Todos los choferes conectados — libres y en servicio</div>
+    <div class="modal-list" id="modal-lista"></div>
+    <button class="btn-cancelar-modal" onclick="cerrarModal()">CANCELAR</button>
+  </div>
+</div>
 
 <div class="panel">
   <div class="tabs">
@@ -221,8 +255,12 @@ body{background:var(--negro);color:var(--blanco);font-family:'DM Sans',sans-seri
       <input class="finput" id="destino" placeholder="Terminal, UCAT..."/>
       <label class="flabel">📞 Teléfono cliente</label>
       <input class="finput" id="telefono" placeholder="0414-..." type="tel"/>
-      <button class="btn-buscar" id="btn-buscar" onclick="asignar()">
-        BUSCAR CHOFER MÁS CERCANO
+      <button class="btn-buscar" id="btn-buscar" onclick="asignarMasCercano()">
+        🎯 ASIGNAR AL MÁS CERCANO
+      </button>
+      <button class="btn-buscar" onclick="abrirModalChoferes()"
+        style="background:var(--gris2);color:var(--blanco);border:1px solid var(--gris3);">
+        👨‍✈️ ELEGIR CHOFER MANUALMENTE
       </button>
       <div class="acard" id="acard"></div>
     </div>
@@ -253,6 +291,7 @@ const SERVIDOR = 'https://ubergps.onrender.com';
 let map, markers = {}, clientePin = null;
 let choferes = [], historial = [];
 let origenCoords = null, servicioActual = null;
+let pendienteOrigen = '', pendienteDestino = '', pendienteTel = '', pendienteCoords = null;
 
 // ── SUPABASE ──
 const sb = window.supabase.createClient(
@@ -260,7 +299,7 @@ const sb = window.supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im16d3loaXVlaWV2a3dqd2J2aGVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3ODc2NDUsImV4cCI6MjA5NTM2MzY0NX0.K3TACDGhOm-6k_9AJk_SdNTUT8mj_dnTNvftx_-sagI'
 );
 
-// ── LOGIN OPERADORA ──
+// ── LOGIN ──
 async function loginOperadora() {
   const usuario  = document.getElementById('inp-user').value.trim();
   const password = document.getElementById('inp-pass').value.trim();
@@ -305,24 +344,21 @@ function initMap() {
 // ── SOCKET ──
 function initSocket() {
   const socket = io(SERVIDOR);
-
-  socket.on('connect', () => {
-    toast('✅ Conectada al servidor');
-  });
-
+  socket.on('connect', () => toast('✅ Conectada al servidor'));
   socket.on('choferes_actualizado', (lista) => {
     choferes = lista;
     actualizarMarkers();
     renderChoferes();
     actualizarStats();
   });
-
   socket.on('servicio_actualizado', (lista) => {
     historial = lista;
     renderHistorial();
     actualizarStats();
   });
 }
+
+// ── ICONOS MAPA ──
 function iconChofer(libre, pulso=false) {
   const c = libre ? '#00E676' : '#FF3D3D';
   const sz = pulso ? 40 : 32;
@@ -352,21 +388,18 @@ function iconCliente() {
   });
 }
 
-// ── ICONOS ──
 function actualizarMarkers() {
-  // Remover markers viejos
   Object.keys(markers).forEach(id => {
     if (!choferes.find(c => c.id === id)) {
       map.removeLayer(markers[id]);
       delete markers[id];
     }
   });
-
   choferes.forEach(c => {
-    const popup = `<b>${c.nombre}</b><br>🚗 ${c.placa}<br>📞 ${c.tel||'—'}<br>
-      <span style="color:${c.libre?'#00E676':'#FF3D3D'};font-weight:700">
-      ${c.libre?'✅ Disponible':'🔴 En servicio'}</span>`;
-
+    const estadoColor = c.libre ? '#00E676' : '#FF3D3D';
+    const estadoTexto = c.libre ? '✅ Disponible' : '🔴 En servicio';
+    const popup = `<b>${c.nombre}</b><br>🚗 ${c.placa}<br>📞 ${c.tel||c.telefono||'—'}<br>
+      <span style="color:${estadoColor};font-weight:700">${estadoTexto}</span>`;
     if (markers[c.id]) {
       markers[c.id].setLatLng([c.lat, c.lng]);
       markers[c.id].setIcon(iconChofer(c.libre));
@@ -378,21 +411,23 @@ function actualizarMarkers() {
   });
 }
 
-// ── GEOCODIFICAR DIRECCIÓN DE TEXTO ──
+// ── HAVERSINE ──
+function haversine(la1,lo1,la2,lo2) {
+  const R=6371000, p=Math.PI/180;
+  const a = Math.sin((la2-la1)*p/2)**2 +
+    Math.cos(la1*p)*Math.cos(la2*p)*Math.sin((lo2-lo1)*p/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ── GEOCODIFICAR ──
 async function geocodificarTexto(texto) {
   try {
     const query = encodeURIComponent(texto + ', San Cristóbal, Táchira, Venezuela');
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`;
-    const res = await fetch(url, {
-      headers: { 'Accept-Language': 'es' }
-    });
+    const res = await fetch(url, { headers: { 'Accept-Language': 'es' } });
     const data = await res.json();
-    if (data.length > 0) {
-      return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-    }
-  } catch(e) {
-    console.log('Error geocodificando:', e);
-  }
+    if (data.length > 0) return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+  } catch(e) {}
   return null;
 }
 
@@ -400,13 +435,10 @@ async function geocodificarTexto(texto) {
 function parsearWA() {
   const raw = document.getElementById('wa-link').value.trim();
   if (!raw) { toast('⚠️ Pega un link primero'); return; }
-
   const re = /([+-]?\d{1,2}\.\d+)[,\s]+([+-]?\d{1,3}\.\d+)/;
   const m = raw.match(re);
-
   const lat = m ? parseFloat(m[1]) : 7.7703 + (Math.random()-.5)*.015;
   const lng = m ? parseFloat(m[2]) : -72.2250 + (Math.random()-.5)*.015;
-
   origenCoords = [lat, lng];
   ponerPinCliente(lat, lng);
   document.getElementById('origen').value = `📍 GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
@@ -421,121 +453,200 @@ function ponerPinCliente(lat, lng) {
   map.flyTo([lat,lng], 15, {duration:1});
 }
 
-// ── HAVERSINE ──
-function haversine(la1,lo1,la2,lo2) {
-  const R=6371000, p=Math.PI/180;
-  const a = Math.sin((la2-la1)*p/2)**2 +
-    Math.cos(la1*p)*Math.cos(la2*p)*Math.sin((lo2-lo1)*p/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+// ── OBTENER COORDS DEL FORM ──
+async function obtenerCoordsForm() {
+  const origen = document.getElementById('origen').value.trim();
+  const destino = document.getElementById('destino').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+  if (!origen || !destino) return null;
+
+  let coords = origenCoords;
+  if (!coords) {
+    toast('📍 Buscando ubicación...');
+    coords = await geocodificarTexto(origen);
+    if (!coords) {
+      coords = [7.7703+(Math.random()-.5)*.02, -72.2250+(Math.random()-.5)*.02];
+      toast('⚠️ Dirección aproximada');
+    } else {
+      toast('✅ Dirección ubicada');
+    }
+  }
+  origenCoords = null;
+  return { origen, destino, telefono, coords };
 }
 
-// ── ASIGNAR ──
-async function asignar() {
-  const origen   = document.getElementById('origen').value.trim();
-  const destino  = document.getElementById('destino').value.trim();
-  const telefono = document.getElementById('telefono').value.trim();
-  const btn      = document.getElementById('btn-buscar');
-  const card     = document.getElementById('acard');
+// ── ASIGNAR AL MÁS CERCANO (solo libres) ──
+async function asignarMasCercano() {
+  const card = document.getElementById('acard');
+  const btn  = document.getElementById('btn-buscar');
 
-  if (!origen || !destino) {
+  const form = await obtenerCoordsForm();
+  if (!form) {
     card.className='acard err on';
     card.innerHTML=`<div class="a-nombre err">⚠️ Ingresa origen y destino</div>`;
     return;
   }
 
-  btn.disabled=true; btn.textContent='BUSCANDO...';
-
-  // Coordenadas de origen
-  let coords = origenCoords;
-if (!coords) {
-  toast('📍 Buscando ubicación...');
-  coords = await geocodificarTexto(origen);
-  if (!coords) {
-    coords = [7.7703+(Math.random()-.5)*.02, -72.2250+(Math.random()-.5)*.02];
-    toast('⚠️ Dirección no encontrada, usando ubicación aproximada');
-  } else {
-    toast('✅ Dirección ubicada en el mapa');
-  }
-}
-origenCoords = null;
-
-  // Choferes libres
   const libres = choferes.filter(c => c.libre);
   if (!libres.length) {
+    // No hay libres — sugerir elegir manualmente
     card.className='acard err on';
-    card.innerHTML=`<div class="a-nombre err">❌ No hay choferes disponibles</div>`;
-    btn.disabled=false; btn.textContent='BUSCAR CHOFER MÁS CERCANO';
+    card.innerHTML=`<div class="a-nombre err">⚠️ No hay choferes libres ahora</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">
+        Usa <b>👨‍✈️ ELEGIR CHOFER MANUALMENTE</b> para asignar a uno en servicio</div>`;
+    btn.disabled=false;
     return;
   }
 
-  // Más cercano
+  btn.disabled=true; btn.textContent='BUSCANDO...';
+
   let mejor=null, minD=Infinity;
   libres.forEach(c => {
-    const d = haversine(coords[0],coords[1],c.lat,c.lng);
+    const d = haversine(form.coords[0],form.coords[1],c.lat,c.lng);
     if (d<minD) { minD=d; mejor=c; }
   });
 
-  const km = (minD/1000).toFixed(1);
-  const eta = Math.ceil(minD/350);
+  await ejecutarAsignacion(mejor, form, minD, card);
+  btn.disabled=false; btn.textContent='🎯 ASIGNAR AL MÁS CERCANO';
+}
 
-  // Llamar al backend
+// ── ABRIR MODAL PARA ELEGIR CHOFER ──
+async function abrirModalChoferes() {
+  const form = await obtenerCoordsForm();
+  if (!form) {
+    toast('⚠️ Ingresa origen y destino primero');
+    return;
+  }
+
+  // Guardar datos del form en variables pendientes
+  pendienteOrigen  = form.origen;
+  pendienteDestino = form.destino;
+  pendienteTel     = form.telefono;
+  pendienteCoords  = form.coords;
+
+  ponerPinCliente(form.coords[0], form.coords[1]);
+
+  // Construir lista con TODOS los choferes ordenados por distancia
+  const lista = choferes.map(c => {
+    const d = haversine(form.coords[0], form.coords[1], c.lat, c.lng);
+    return { ...c, _dist: d };
+  }).sort((a,b) => a._dist - b._dist);
+
+  const el = document.getElementById('modal-lista');
+  if (!lista.length) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">
+      No hay choferes conectados</div>`;
+  } else {
+    el.innerHTML = lista.map(c => {
+      const km    = (c._dist/1000).toFixed(1);
+      const eta   = Math.ceil(c._dist/350);
+      const libre = c.libre;
+      return `
+        <div class="mitem" onclick="asignarAChofer('${c.id}')">
+          <div class="cav ${libre?'libre':'ocupado'}">${(c.nombre||'?')[0]}</div>
+          <div class="mitem-info">
+            <div class="mitem-nombre">${c.nombre}
+              <span class="pill ${libre?'libre':'ocupado'}" style="margin-left:6px">
+                ${libre?'Libre':'En servicio'}
+              </span>
+            </div>
+            <div class="mitem-det">🚗 ${c.placa} · 📞 ${c.tel||c.telefono||'—'}</div>
+          </div>
+          <div class="mitem-dist ${libre?'libre':'ocupado'}">
+            ${km} km<br><span style="font-size:10px;font-weight:400">~${eta} min</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('modal-choferes').classList.add('on');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-choferes').classList.remove('on');
+}
+
+// ── ASIGNAR A UN CHOFER ESPECÍFICO (desde modal) ──
+async function asignarAChofer(choferId) {
+  cerrarModal();
+  const chofer = choferes.find(c => c.id === choferId);
+  if (!chofer) { toast('❌ Chofer no encontrado'); return; }
+
+  const d = haversine(pendienteCoords[0], pendienteCoords[1], chofer.lat, chofer.lng);
+  const form = {
+    origen:   pendienteOrigen,
+    destino:  pendienteDestino,
+    telefono: pendienteTel,
+    coords:   pendienteCoords
+  };
+
+  const card = document.getElementById('acard');
+  await ejecutarAsignacion(chofer, form, d, card);
+}
+
+// ── EJECUTAR ASIGNACIÓN (común para ambos flujos) ──
+async function ejecutarAsignacion(chofer, form, distMetros, card) {
+  const km  = (distMetros/1000).toFixed(1);
+  const eta = Math.ceil(distMetros/350);
+
   try {
     const res = await fetch(`${SERVIDOR}/servicio`, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        origen, destino, telefono,
-        lat: coords[0], lng: coords[1]
+        origen:   form.origen,
+        destino:  form.destino,
+        telefono: form.telefono,
+        lat:      form.coords[0],
+        lng:      form.coords[1],
+        chofer_id_forzado: chofer.id   // nuevo campo para forzar chofer
       })
     });
     const svc = await res.json();
 
-    // Pin cliente
-    ponerPinCliente(coords[0], coords[1]);
-
-    // Línea de ruta
-    const ruta = L.polyline([coords,[mejor.lat,mejor.lng]],
+    // Pin cliente + línea ruta
+    ponerPinCliente(form.coords[0], form.coords[1]);
+    const ruta = L.polyline([form.coords,[chofer.lat,chofer.lng]],
       {color:'#00E676',weight:3,dashArray:'8 6',opacity:.8}).addTo(map);
     setTimeout(()=>map.removeLayer(ruta), 9000);
 
-    // Volar al chofer
-    map.flyTo([mejor.lat,mejor.lng],15,{duration:1.3});
-    if(markers[mejor.id]) {
-      markers[mejor.id].setIcon(iconChofer(false,true));
-      markers[mejor.id].openPopup();
-      setTimeout(()=>markers[mejor.id]?.setIcon(iconChofer(false)),5000);
+    // Volar al chofer en mapa
+    map.flyTo([chofer.lat,chofer.lng],15,{duration:1.3});
+    if(markers[chofer.id]) {
+      markers[chofer.id].setIcon(iconChofer(false,true));
+      markers[chofer.id].openPopup();
+      setTimeout(()=>markers[chofer.id]?.setIcon(iconChofer(false)),5000);
     }
 
     servicioActual = svc;
 
-    // Card resultado con botón WhatsApp
     card.className='acard on';
     card.innerHTML=`
-      <div class="a-nombre">✅ ${mejor.nombre}</div>
-      <div class="a-det">🚗 ${mejor.placa} · 📍 ${mejor.zona||'En ruta'} · 📞 ${mejor.tel||'—'}</div>
+      <div class="a-nombre">✅ ${chofer.nombre}</div>
+      <div class="a-det">🚗 ${chofer.placa} · 📞 ${chofer.tel||chofer.telefono||'—'}
+        ${!chofer.libre ? ' · <span style="color:var(--amarillo)">⚠️ Estaba en servicio</span>' : ''}
+      </div>
       <div class="a-dist">📏 ${km} km · ⏱️ ~${eta} min de llegada</div>
-      <button class="btn-whatsapp" onclick="abrirWhatsApp('${mejor.tel}','${mejor.nombre}','${origen}','${destino}','${telefono}','${km}')">
+      <button class="btn-whatsapp" onclick="abrirWhatsApp('${chofer.tel||chofer.telefono||''}','${chofer.nombre}','${form.origen}','${form.destino}','${form.telefono}','${km}')">
         📲 ENVIAR POR WHATSAPP AL CHOFER
-      </button>
-    `;
+      </button>`;
 
     historial.unshift(svc);
     renderHistorial();
     actualizarStats();
-    toast(`🚕 ${mejor.nombre} asignado · ${km} km`);
+    toast(`🚕 ${chofer.nombre} asignado · ${km} km`);
+
+    document.getElementById('origen').value   = '';
+    document.getElementById('destino').value  = '';
+    document.getElementById('telefono').value = '';
 
   } catch(e) {
     card.className='acard err on';
     card.innerHTML=`<div class="a-nombre err">❌ Error conectando al servidor</div>`;
   }
-
-  btn.disabled=false; btn.textContent='BUSCAR CHOFER MÁS CERCANO';
-  document.getElementById('origen').value='';
-  document.getElementById('destino').value='';
-  document.getElementById('telefono').value='';
 }
 
-// ── WHATSAPP DEEP LINK ──
+// ── WHATSAPP ──
 function abrirWhatsApp(tel, nombre, origen, destino, telCliente, km) {
   const numero = tel.replace(/\D/g,'');
   const msg = encodeURIComponent(
@@ -550,7 +661,7 @@ Responde:
 1 = Acepto el servicio
 2 = Rechazo el servicio
 
-Cuando termines responde: *listo*`);
+Cuando termines responde: *Listo*`);
   window.open(`https://wa.me/58${numero}?text=${msg}`, '_blank');
 }
 
@@ -564,10 +675,8 @@ function goTab(id, el) {
 
 // ── STATS ──
 function actualizarStats() {
-  const libres   = choferes.filter(c=>c.libre).length;
-  const ocupados = choferes.filter(c=>!c.libre).length;
-  document.getElementById('cnt-l').textContent = libres;
-  document.getElementById('cnt-o').textContent = ocupados;
+  document.getElementById('cnt-l').textContent = choferes.filter(c=>c.libre).length;
+  document.getElementById('cnt-o').textContent = choferes.filter(c=>!c.libre).length;
   document.getElementById('cnt-s').textContent = historial.length;
 }
 
@@ -579,14 +688,16 @@ function renderChoferes() {
       Esperando choferes conectados...</div>`;
     return;
   }
-  el.innerHTML = choferes.map(c=>`
+  // Ordenar: libres primero
+  const sorted = [...choferes].sort((a,b) => (b.libre ? 1 : 0) - (a.libre ? 1 : 0));
+  el.innerHTML = sorted.map(c=>`
     <div class="citem">
-      <div class="cav ${c.libre?'libre':'ocupado'}">${c.nombre[0]}</div>
+      <div class="cav ${c.libre?'libre':'ocupado'}">${(c.nombre||'?')[0]}</div>
       <div class="cinfo">
         <div class="cnombre">${c.nombre}</div>
-        <div class="cdet">🚗 ${c.placa} · 📞 ${c.tel||'—'}</div>
+        <div class="cdet">🚗 ${c.placa} · 📞 ${c.tel||c.telefono||'—'}</div>
       </div>
-      <span class="pill ${c.libre?'libre':'ocupado'}">${c.libre?'Libre':'Ocupado'}</span>
+      <span class="pill ${c.libre?'libre':'ocupado'}">${c.libre?'Libre':'En servicio'}</span>
     </div>`).join('');
 }
 
@@ -601,7 +712,7 @@ function renderHistorial() {
   el.innerHTML = historial.map(s=>`
     <div class="hitem">
       <div class="hhead">
-        <span class="hid">${s.id} · ${s.hora}</span>
+        <span class="hid">#${s.id} · ${s.hora||''}</span>
         <span class="pill ${s.estado==='activo'?'activo':'comp'}">
           ${s.estado==='activo'?'🔵 Activo':'✅ Listo'}</span>
       </div>
@@ -616,8 +727,6 @@ function toast(msg) {
   t.textContent=msg; t.classList.add('on');
   setTimeout(()=>t.classList.remove('on'),3200);
 }
-
-
 </script>
 </body>
 </html>
